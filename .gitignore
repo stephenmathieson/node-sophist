@@ -1,0 +1,4 @@
+build/
+testdb/
+node_modules/
+coverate.html
