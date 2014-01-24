@@ -6,7 +6,7 @@ var exists = require('fs').existsSync;
 
 describe('Sophist#open', function() {
   describe('creating a database', function () {
-    before(function (done) {
+    beforeEach(function (done) {
       rimraf('./testdb', done);
     });
 
@@ -14,12 +14,12 @@ describe('Sophist#open', function() {
       var db = new Sophist('./testdb');
       db.open(function (err) {
         if (err) return done(err);
-        assert(true == exists('./testdb'));
+        assert(exists('./testdb'));
         db.close(done);
       });
     });
 
-    it('should allow reading and writing', function (done) {
+    it('should allow reading and writing (by default)', function (done) {
       var db = new Sophist('./testdb');
       db.open(function (err) {
         if (err) return done(err);
@@ -30,6 +30,14 @@ describe('Sophist#open', function() {
             db.close(done);
           });
         });
+      });
+    });
+
+    it('should fail if createIfMissing == false', function (done) {
+      var db = new Sophist('./testdb');
+      db.open({ createIfMissing: false }, function (err) {
+        assert(err);
+        done();
       });
     });
   });
@@ -43,7 +51,7 @@ describe('Sophist#open', function() {
       });
     });
 
-    it('should allow reading and writing', function (done) {
+    it('should allow reading and writing (by default)', function (done) {
       var db = new Sophist('./testdb');
       db.open(function (err) {
         if (err) return done(err);

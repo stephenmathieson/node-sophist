@@ -59,4 +59,17 @@ describe('Sophist#set', function () {
       });
     });
   });
+
+  it('should fail if readOnly == true', function (done) {
+    db.close(function (err) {
+      if (err) return done(err);
+      db.open({ readOnly: true }, function (err) {
+        if (err) return done(err);
+        db.set('abc', 'def', function (err) {
+          assert(err);
+          done();
+        });
+      });
+    });
+  });
 });

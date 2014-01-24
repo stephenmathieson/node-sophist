@@ -50,8 +50,31 @@ namespace sophist {
   NAN_METHOD(Sophist::Open) {
     NanScope();
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
-    Local<Function> cb = args[0].As<Function>();
-    sophist::Open(wrapper, new NanCallback(cb));
+    Local<Object> options = args[0].As<Object>();
+    Local<Function> cb = args[1].As<Function>();
+    bool create = NanBooleanOptionValue(options
+      , NanSymbol("createIfMissing")
+      , true);
+    bool read_only = NanBooleanOptionValue(options
+      , NanSymbol("readOnly")
+      , false);
+    bool gc = NanBooleanOptionValue(options
+      , NanSymbol("gc")
+      , true);
+    uint32_t merge_watermark = NanUInt32OptionValue(options
+      , NanSymbol("mergeWatermark")
+      , 100000);
+    uint32_t page_size = NanUInt32OptionValue(options
+      , NanSymbol("pageSize")
+      , 2048);
+
+    sophist::Open(wrapper
+      , create
+      , read_only
+      , gc
+      , merge_watermark
+      , page_size
+      , new NanCallback(cb));
     NanReturnUndefined();
   }
 

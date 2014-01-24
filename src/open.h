@@ -7,7 +7,15 @@
 #include "sophist.h"
 
 namespace sophist {
-  void Open(Sophist *, NanCallback *);
+  void Open(
+    Sophist *
+  , bool
+  , bool
+  , bool
+  , uint32_t
+  , uint32_t
+  , NanCallback *
+  );
 }
 
 #endif

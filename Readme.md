@@ -11,9 +11,19 @@
 
   Initilize a Sophia binding for `path`.
 
-#### Sophist#open(cb)
+#### Sophist#open([options], cb)
 
-  Open/create the Sophia database, invoking `cb(err)`.
+  Open/create the Sophia database with the given `options`, invoking `cb(err)`.
+
+  Options:
+
+  * `createIfMissing` - boolean, default `true`
+  * `readOnly` - boolean, default `false`
+  * `gc` - boolean, default `true`
+  * `gcFactor` - number, default `0.5`
+  * `pageSize` - number, default `2048`
+  * `merge` - boolean, default `true`
+  * `mergeWatermark` - number, default `100000`
 
 #### Sophist#close(cb)
 

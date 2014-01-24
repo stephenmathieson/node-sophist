@@ -5,17 +5,40 @@
 #include "sophist.h"
 #include "open.h"
 
+#include <stdio.h>
+
 namespace sophist {
   class OpenWorker : public NanAsyncWorker {
     public:
-      OpenWorker(Sophist *wrapper, NanCallback *callback)
+      OpenWorker(
+            Sophist *wrapper
+          , bool create
+          , bool read_only
+          , bool gc
+          , uint32_t merge_watermark
+          , uint32_t page_size
+          , NanCallback *callback
+        )
         : NanAsyncWorker(callback)
-        , wrapper(wrapper) {}
+        , wrapper(wrapper)
+        , create(create)
+        , read_only(read_only)
+        , gc(gc)
+        , merge_watermark(merge_watermark)
+        , page_size(page_size) {}
 
       void Execute() {
-        int rc = 0;
         void *env = NULL;
         void *db = NULL;
+        uint32_t flags = 0;
+
+        if (create) flags |= SPO_CREAT;
+
+        if (read_only) {
+          flags |= SPO_RDONLY;
+        } else {
+          flags |= SPO_RDWR;
+        }
 
         if (NULL == (env = sp_env())) {
           // TODO this is nasty, but prevents leaks in nan
@@ -23,16 +46,25 @@ namespace sophist {
           return;
         }
 
-        // TODO flags
-        rc = sp_ctl(env, SPDIR, SPO_CREAT|SPO_RDWR, wrapper->path);
-        if (-1 == rc) {
+        if (-1 == sp_ctl(env, SPDIR, flags, wrapper->path)) {
           errmsg = strdup("Unable to open/create Sophia repository.");
           return;
         }
 
-        rc = sp_ctl(env, SPGC, 1);
-        if (-1 == rc) {
-          errmsg = strdup("Unable to enabled Sophia garbage collector.");
+        if (gc) {
+          if (-1 == sp_ctl(env, SPGC, 1)) {
+            errmsg = strdup("Unable to enable Sophia garbage collector.");
+            return;
+          }
+        }
+
+        if (-1 == sp_ctl(env, SPMERGEWM, merge_watermark)) {
+          errmsg = strdup("Unable to set merge watermark value.");
+          return;
+        }
+
+        if (-1 == sp_ctl(env, SPPAGE, page_size)) {
+          errmsg = strdup("Unable to set max page size value.");
           return;
         }
 
@@ -50,10 +82,29 @@ namespace sophist {
 
     private:
       Sophist *wrapper;
+      bool create;
+      bool read_only;
+      bool gc;
+      uint32_t merge_watermark;
+      uint32_t page_size;
   };
 
-  void Open(Sophist *wrapper, NanCallback *callback) {
-    OpenWorker *worker = new OpenWorker(wrapper, callback);
+  void Open(
+        Sophist *wrapper
+      , bool create
+      , bool read_only
+      , bool gc
+      , uint32_t merge_watermark
+      , uint32_t page_size
+      , NanCallback *callback
+    ) {
+    OpenWorker *worker = new OpenWorker(wrapper
+      , create
+      , read_only
+      , gc
+      , merge_watermark
+      , page_size
+      , callback);
     NanAsyncQueueWorker(worker);
   }
 }
