@@ -13,14 +13,6 @@
 
 using namespace v8;
 
-#define PROTOTYPE_METHOD(prototype, name, fn)             \
-  prototype                                               \
-    ->PrototypeTemplate()                                 \
-      ->Set(                                              \
-            NanSymbol(name)                               \
-          , v8::FunctionTemplate::New(fn)->GetFunction()  \
-        );
-
 namespace sophist {
   Sophist::Sophist() {
     db = NULL;
@@ -34,13 +26,13 @@ namespace sophist {
     Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
     tpl->SetClassName(NanSymbol("Sophist"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    PROTOTYPE_METHOD(tpl, "open", Open);
-    PROTOTYPE_METHOD(tpl, "close", Close);
-    PROTOTYPE_METHOD(tpl, "get", Get);
-    PROTOTYPE_METHOD(tpl, "set", Set);
-    PROTOTYPE_METHOD(tpl, "delete", Delete);
-    PROTOTYPE_METHOD(tpl, "count", Count);
-    PROTOTYPE_METHOD(tpl, "clear", Clear);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "get", Get);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "set", Set);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
     Persistent<Function> constructor =
       Persistent<Function>::New(tpl->GetFunction());
     exports->Set(NanSymbol("Sophist"), constructor);
