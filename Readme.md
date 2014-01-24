@@ -47,6 +47,10 @@
 
   Clear all keys from the database, invoking `cb(err)`.
 
+#### Sophist#purge(cb)
+
+  Purge (delete) all incomplete / temporary data from the database.  This operation is **NOT** recoverable.
+
 #### Sophist#iterator()
 
   Create an `Iterator` for the database.
