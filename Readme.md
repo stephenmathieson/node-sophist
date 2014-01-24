@@ -3,6 +3,8 @@
 
   A (maintained) Sophia binding.
 
+[![Build Status](https://travis-ci.org/stephenmathieson/node-sophist.png?branch=master)](https://travis-ci.org/stephenmathieson/node-sophist)
+
 ## API
 
 ### new Sophist(path)
