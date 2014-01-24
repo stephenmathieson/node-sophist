@@ -49,7 +49,7 @@ namespace sophist {
 
         if (count != index) {
           // TODO: why?
-          errmsg = "Database is corrupt.";
+          errmsg = strdup("Database is corrupt.");
           return;
         }
 

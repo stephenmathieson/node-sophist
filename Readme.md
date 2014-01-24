@@ -9,7 +9,7 @@
 
 ### new Sophist(path)
 
-  Initilize a Sophia binding for `path`.
+  Initialize a Sophia binding for `path`.
 
 #### Sophist#open([options], cb)
 
@@ -43,9 +43,25 @@
 
   Get the number of keys in the database, invoking `cb(err, num)`.
 
-#### Sophia#clear(cb)
+#### Sophist#clear(cb)
 
   Clear all keys from the database, invoking `cb(err)`.
+
+#### Sophist#iterator()
+
+  Create an `Iterator` for the database.
+
+  You may **not** write data while an iterator is open.
+
+#### Iterator#next(cb)
+
+  Get the next `key/value` pair from the database, invoking `cb(err, key, value)`.
+
+  When the iterator has cycled through all data, will call `cb(null, null, null)`.
+
+#### Iterator#end(cb)
+
+  End the iteration cycle, invoking `cb(err)`.
 
 ## Credits
 

@@ -18,6 +18,9 @@
         "src/delete.cc",
         "src/count.cc",
         "src/clear.cc",
+        "src/iterator.cc",
+        "src/iterator_next.cc",
+        "src/iterator_end.cc",
       ]
     }
   ]

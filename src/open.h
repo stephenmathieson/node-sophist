@@ -8,13 +8,13 @@
 
 namespace sophist {
   void Open(
-    Sophist *
-  , bool
-  , bool
-  , bool
-  , uint32_t
-  , uint32_t
-  , NanCallback *
+      Sophist *
+    , bool
+    , bool
+    , bool
+    , uint32_t
+    , uint32_t
+    , NanCallback *
   );
 }
 

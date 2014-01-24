@@ -5,8 +5,6 @@
 #include "sophist.h"
 #include "open.h"
 
-#include <stdio.h>
-
 namespace sophist {
   class OpenWorker : public NanAsyncWorker {
     public:

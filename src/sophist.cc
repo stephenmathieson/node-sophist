@@ -10,6 +10,7 @@
 #include "delete.h"
 #include "count.h"
 #include "clear.h"
+#include "iterator.h"
 
 using namespace v8;
 
@@ -33,6 +34,7 @@ namespace sophist {
     NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
     NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
     Persistent<Function> constructor =
       Persistent<Function>::New(tpl->GetFunction());
     exports->Set(NanSymbol("Sophist"), constructor);
@@ -132,5 +134,10 @@ namespace sophist {
     Local<Function> cb = args[0].As<Function>();
     sophist::Clear(wrapper->db, new NanCallback(cb));
     NanReturnUndefined();
+  }
+
+  NAN_METHOD(Sophist::NewIterator) {
+    NanScope();
+    NanReturnValue(Iterator::NewInstance(args.This()));
   }
 }

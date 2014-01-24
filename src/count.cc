@@ -5,8 +5,6 @@
 #include <sophia.h>
 #include "count.h"
 
-#include <stdio.h>
-
 namespace sophist {
   class CountWorker : public NanAsyncWorker {
     public:
