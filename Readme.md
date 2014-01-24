@@ -20,9 +20,7 @@
   * `createIfMissing` - boolean, default `true`
   * `readOnly` - boolean, default `false`
   * `gc` - boolean, default `true`
-  * `gcFactor` - number, default `0.5`
   * `pageSize` - number, default `2048`
-  * `merge` - boolean, default `true`
   * `mergeWatermark` - number, default `100000`
 
 #### Sophist#close(cb)
