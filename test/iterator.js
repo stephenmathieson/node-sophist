@@ -66,7 +66,7 @@ describe('Sophist#iterator', function () {
       });
     });
 
-    it('should start at the first key', function (done) {
+    it('should start at the first key (by default)', function (done) {
       db.set('foo', 'bar', function (err) {
         if (err) return done(err);
         iterator = db.iterator();
@@ -95,6 +95,56 @@ describe('Sophist#iterator', function () {
             assert(null === key);
             assert(null === value);
             done();
+          });
+        });
+      });
+    });
+  });
+
+  describe('given reverse == true', function () {
+    var db;
+
+    before(function (done) {
+      db = new Sophist('./testdb');
+      db.open(function (err) {
+        if (err) throw err;
+        db.clear(function (err) {
+          if (err) throw err;
+          db.set('abc', 123, function (err) {
+            if (err) throw err;
+            db.set('def', 456, function (err) {
+              if (err) throw err;
+              db.set('ghi', 789, done);
+            });
+          });
+        });
+      });
+    });
+
+    after(function (done) {
+      db.close(done);
+    });
+
+    it('should iterate in reverse', function (done) {
+      var iterator = db.iterator({ reverse: true });
+      iterator.next(function (err, key, value) {
+        if (err) return done(err);
+        assert('ghi' === key);
+        assert('789' === value);
+        iterator.next(function (err, key, value) {
+          if (err) return done(err);
+          assert('def' === key);
+          assert('456' === value);
+          iterator.next(function (err, key, value) {
+            if (err) return done(err);
+            assert('abc' === key);
+            assert('123' === value);
+            iterator.next(function (err, key, value) {
+              assert(null === err);
+              assert(null === key);
+              assert(null === value);
+              done();
+            });
           });
         });
       });

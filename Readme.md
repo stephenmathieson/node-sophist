@@ -51,11 +51,15 @@
 
   Purge (delete) all incomplete / temporary data from the database.  This operation is **NOT** recoverable.
 
-#### Sophist#iterator()
+#### Sophist#iterator([options])
 
   Create an `Iterator` for the database.
 
   You may **not** write data while an iterator is open.
+
+  Options:
+
+  * `reverse` - boolean, default `false`
 
 #### Iterator#next(cb)
 

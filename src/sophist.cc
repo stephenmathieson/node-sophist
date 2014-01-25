@@ -138,6 +138,15 @@ namespace sophist {
 
   NAN_METHOD(Sophist::NewIterator) {
     NanScope();
-    NanReturnValue(Iterator::NewInstance(args.This()));
+
+    Local<Object> options;
+    if (args.Length() > 0 && args[0]->IsObject()) {
+      options = Local<Object>::Cast(args[0]);
+    }
+
+    NanReturnValue(Iterator::NewInstance(
+        args.This()
+      , options
+    ));
   }
 }

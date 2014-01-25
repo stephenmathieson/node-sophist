@@ -30,15 +30,24 @@ namespace sophist {
     NanScope();
     void *cursor = NULL;
     Iterator *iterator = new Iterator();
-    // TODO opts
     Sophist *sp = ObjectWrap::Unwrap<Sophist>(args[0]->ToObject());
     if (NULL == sp->db) {
       return NanThrowError("Unable to create an iterator on an unopen database!");
     }
 
+    Local<Object> options = v8::Local<v8::Object>::Cast(args[1]);
+    // TODO moar
+    bool _reverse = NanBooleanOptionValue(options
+      , NanSymbol("reverse")
+      , false);
+
     iterator->Wrap(args.This());
+    iterator->reverse = _reverse;
     iterator->wrapper = sp;
-    cursor = sp_cursor(sp->db, SPGT, NULL, 0);
+    cursor = _reverse
+      ? sp_cursor(sp->db, SPLT, NULL, 0)
+      : sp_cursor(sp->db, SPGT, NULL, 0);
+
     if (NULL == cursor) {
       return NanThrowError(sp_error(sp->db));
     }
@@ -63,14 +72,17 @@ namespace sophist {
     NanReturnUndefined();
   }
 
-  Local<Object> Iterator::NewInstance (Local<Object> sp) {
+  Local<Object>
+  Iterator::NewInstance (Local<Object> sp, Local<Object> options) {
     NanScope();
     Local<Object> instance;
     Local<FunctionTemplate> constructorHandle =
       NanPersistentToLocal(iterator_constructor);
-    // TODO opts
-    Handle<Value> argv[1] = { sp };
-    instance = constructorHandle->GetFunction()->NewInstance(1, argv);
+    Handle<Value> argv[2] = {
+        sp
+      , options
+    };
+    instance = constructorHandle->GetFunction()->NewInstance(2, argv);
     return instance;
   }
 }
