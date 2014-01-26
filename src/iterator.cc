@@ -10,11 +10,16 @@
 using namespace v8;
 
 namespace sophist {
-
   static Persistent<FunctionTemplate> iterator_constructor;
 
-  Iterator::Iterator() {}
-  Iterator::~Iterator() {}
+  Iterator::Iterator() {
+    endsize = 0;
+    end = NULL;
+  }
+
+  Iterator::~Iterator() {
+    if (end) delete end;
+  }
 
   void Iterator::Init () {
     Local<FunctionTemplate> tpl =
@@ -28,31 +33,57 @@ namespace sophist {
 
   NAN_METHOD(Iterator::New) {
     NanScope();
-    void *cursor = NULL;
     Iterator *iterator = new Iterator();
     Sophist *sp = ObjectWrap::Unwrap<Sophist>(args[0]->ToObject());
     if (NULL == sp->db) {
-      return NanThrowError("Unable to create an iterator on an unopen database!");
+      return NanThrowError("Unable to create an iterator "
+                           "on an unopen database!");
     }
 
-    Local<Object> options = v8::Local<v8::Object>::Cast(args[1]);
-    // TODO moar
-    bool _reverse = NanBooleanOptionValue(options
+    iterator->Wrap(args.This());
+    iterator->wrapper = sp;
+
+    Local<Object> options = Local<Object>::Cast(args[1]);
+    bool reverse = NanBooleanOptionValue(options
       , NanSymbol("reverse")
       , false);
 
-    iterator->Wrap(args.This());
-    iterator->reverse = _reverse;
-    iterator->wrapper = sp;
-    cursor = _reverse
-      ? sp_cursor(sp->db, SPLT, NULL, 0)
-      : sp_cursor(sp->db, SPGT, NULL, 0);
+    bool gte = NanBooleanOptionValue(options
+      , NanSymbol("gte")
+      , false);
 
-    if (NULL == cursor) {
+    char *start = NULL;
+    size_t startsize = 0;
+
+    if (options->Has(NanSymbol("start"))) {
+      start = NanCString(options->Get(NanSymbol("start")).As<String>()
+        , &startsize);
+    }
+
+    if (options->Has(NanSymbol("end"))) {
+      iterator->end = NanCString(options->Get(NanSymbol("end")).As<String>()
+        , &iterator->endsize);
+      // HACK: compensate for strlen(key) + 1
+      // see pmwkaa/sophia#43
+      iterator->endsize++;
+    }
+
+    iterator->order = true == reverse
+      ? SPLT
+      : gte
+        ? SPGTE
+        : SPGT;
+    iterator->cursor = sp_cursor(sp->db
+      , iterator->order
+      , start
+      , startsize);
+
+    delete start;
+
+    if (NULL == iterator->cursor) {
       return NanThrowError(sp_error(sp->db));
     }
 
-    iterator->cursor = cursor;
     NanReturnValue(args.This());
   }
 
@@ -73,7 +104,7 @@ namespace sophist {
   }
 
   Local<Object>
-  Iterator::NewInstance (Local<Object> sp, Local<Object> options) {
+  Iterator::NewInstance(Local<Object> sp, Local<Object> options) {
     NanScope();
     Local<Object> instance;
     Local<FunctionTemplate> constructorHandle =

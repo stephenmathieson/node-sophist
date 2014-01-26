@@ -10,8 +10,10 @@ namespace sophist {
   class Iterator : public node::ObjectWrap {
     public:
       Sophist *wrapper;
-      bool reverse;
       void *cursor;
+      size_t endsize;
+      char *end;
+      sporder order;
 
       static void Init ();
       static v8::Local<v8::Object> NewInstance(

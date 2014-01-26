@@ -2,6 +2,25 @@
 var assert = require('better-assert');
 var Sophist = require('..');
 
+function setup(db, fn) {
+  db.open(function (err) {
+    if (err) throw err;
+    db.clear(function (err) {
+      if (err) throw err;
+      db.set('abc', 123, function (err) {
+        if (err) throw err;
+        db.set('def', 456, function (err) {
+          if (err) throw err;
+          db.set('ghi', 789, function (err) {
+            if (err) throw err;
+            fn();
+          });
+        });
+      });
+    });
+  });
+}
+
 describe('Sophist#iterator', function () {
   describe('given an unopen db', function () {
     it('should throw an error', function () {
@@ -106,19 +125,7 @@ describe('Sophist#iterator', function () {
 
     before(function (done) {
       db = new Sophist('./testdb');
-      db.open(function (err) {
-        if (err) throw err;
-        db.clear(function (err) {
-          if (err) throw err;
-          db.set('abc', 123, function (err) {
-            if (err) throw err;
-            db.set('def', 456, function (err) {
-              if (err) throw err;
-              db.set('ghi', 789, done);
-            });
-          });
-        });
-      });
+      setup(db, done);
     });
 
     after(function (done) {
@@ -129,16 +136,16 @@ describe('Sophist#iterator', function () {
       var iterator = db.iterator({ reverse: true });
       iterator.next(function (err, key, value) {
         if (err) return done(err);
-        assert('ghi' === key);
-        assert('789' === value);
+        assert('ghi' == key);
+        assert(789 == value);
         iterator.next(function (err, key, value) {
           if (err) return done(err);
-          assert('def' === key);
-          assert('456' === value);
+          assert('def' == key);
+          assert(456 == value);
           iterator.next(function (err, key, value) {
             if (err) return done(err);
-            assert('abc' === key);
-            assert('123' === value);
+            assert('abc' == key);
+            assert(123 == value);
             iterator.next(function (err, key, value) {
               assert(null === err);
               assert(null === key);
@@ -146,6 +153,134 @@ describe('Sophist#iterator', function () {
               done();
             });
           });
+        });
+      });
+    });
+
+    describe('given a start key', function () {
+      it('should start the iterator at the given key', function (done) {
+        var iterator = db.iterator({ reverse: true, start: 'def' });
+        iterator.next(function (err, key, value) {
+          if (err) return done(err);
+          assert('abc' == key);
+          assert(123 == value);
+          iterator.next(function (err, key, value) {
+            if (err) return done(err);
+            assert(null === key);
+            assert(null === value);
+            iterator.end(done);
+          });
+        });
+      });
+    });
+  });
+
+  describe('given a start key', function () {
+    var db;
+
+    beforeEach(function (done) {
+      db = new Sophist('./testdb');
+      setup(db, done);
+    });
+
+    afterEach(function (done) {
+      db.close(done);
+    });
+
+    it('should not error given an invalid key', function (done) {
+      var iterator = db.iterator({ start: 'nope' });
+      iterator.next(function (err, key, value) {
+        if (err) return done(err);
+        assert(null === key);
+        assert(null === value);
+        iterator.end(done);
+      });
+    });
+
+    it('should start the iterator at the given key', function (done) {
+      var iterator = db.iterator({ start: 'def' });
+      iterator.next(function (err, key, value) {
+        if (err) return done(err);
+        assert('ghi' == key);
+        assert(789 == value);
+        iterator.end(done);
+      });
+    });
+
+    describe('given gte == true', function () {
+      it('should start the iterator one step before the given key', function (done) {
+        var iterator = db.iterator({ start: 'def', gte: true });
+        iterator.next(function (err, key, value) {
+          if (err) return done(err);
+          assert('def' == key);
+          assert(456 == value);
+          iterator.next(function (err, key, value) {
+            if (err) return done(err);
+            assert('ghi' == key);
+            assert(789 == value);
+            iterator.end(done);
+          });
+        });
+      });
+    });
+  });
+
+  describe('given an end key', function () {
+    var db;
+
+    beforeEach(function (done) {
+      db = new Sophist('./testdb');
+      setup(db, done);
+    });
+
+    afterEach(function (done) {
+      db.close(done);
+    });
+
+    it('should not iterate past the key', function (done) {
+      var iterator = db.iterator({ end: 'def' });
+      iterator.next(function (err, key, value) {
+        if (err) return done(err);
+        assert('abc' == key);
+        assert(123 == value);
+        iterator.next(function (err, key, value) {
+          if (err) return done(err);
+          assert(null === key);
+          assert(null === value);
+          iterator.end(done);
+        });
+      });
+    });
+  });
+
+  describe('given a start and an end key', function () {
+    var db;
+
+    beforeEach(function (done) {
+      db = new Sophist('./testdb');
+      setup(db, function () {
+        db.set('blah', 'blah', function (err) {
+          if (err) throw err;
+          db.set('blahblah', 'blahblah', done);
+        });
+      });
+    });
+
+    afterEach(function (done) {
+      db.close(done);
+    });
+
+    it('should start and end appropriately', function (done) {
+      var iterator = db.iterator({ start: 'def', end: 'blah' });
+      iterator.next(function (err, key, value) {
+        if (err) return done(err);
+        assert('ghi' == key);
+        assert(789 == value);
+        iterator.next(function (err, key, value) {
+          if (err) return done(err);
+          assert(null === key);
+          assert(null === value);
+          done();
         });
       });
     });

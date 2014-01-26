@@ -60,6 +60,9 @@
   Options:
 
   * `reverse` - boolean, default `false`
+  * `start` - string, default `null`
+  * `end` - string, default `null`
+  * `gte` - boolean, default `false`
 
 #### Iterator#next(cb)
 

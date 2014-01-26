@@ -14,6 +14,8 @@ namespace sophist {
           db = iterator->wrapper->db;
           key = NULL;
           value = NULL;
+          end = iterator->end;
+          endsize = iterator->endsize;
         }
 
       void Execute() {
@@ -32,6 +34,10 @@ namespace sophist {
 
         ksize = sp_keysize(cursor);
         vsize = sp_valuesize(cursor);
+        // at the "end" key?
+        if (end && endsize == ksize && 0 == strncmp(end, k, ksize)) {
+          return;
+        }
 
         key = strdup(k);
         value = strdup(v);
@@ -61,6 +67,8 @@ namespace sophist {
     private:
       void *cursor;
       void *db;
+      char *end;
+      size_t endsize;
       char *key;
       char *value;
   };
