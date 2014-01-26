@@ -158,6 +158,16 @@ describe('Sophist#iterator', function () {
     });
 
     describe('given a start key', function () {
+      it('should throw when given a non-string', function () {
+        var err = null;
+        try {
+          db.iterator({ reverse: true, start: {} });
+        } catch (e) {
+          err = e;
+        }
+        assert(err);
+      });
+
       it('should start the iterator at the given key', function (done) {
         var iterator = db.iterator({ reverse: true, start: 'def' });
         iterator.next(function (err, key, value) {
@@ -187,7 +197,17 @@ describe('Sophist#iterator', function () {
       db.close(done);
     });
 
-    it('should not error given an invalid key', function (done) {
+    it('should throw when given a non-string', function () {
+      var err = null;
+      try {
+        db.iterator({ start: {} });
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
+    });
+
+    it('should not error given a missing key', function (done) {
       var iterator = db.iterator({ start: 'nope' });
       iterator.next(function (err, key, value) {
         if (err) return done(err);
@@ -235,6 +255,16 @@ describe('Sophist#iterator', function () {
 
     afterEach(function (done) {
       db.close(done);
+    });
+
+    it('should throw when given a non-string', function () {
+      var err = null;
+      try {
+        db.iterator({ end: {} });
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
     });
 
     it('should not iterate past the key', function (done) {
