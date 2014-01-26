@@ -30,7 +30,9 @@ namespace sophist {
     NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "get", Get);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getSync", GetSync);
     NODE_SET_PROTOTYPE_METHOD(tpl, "set", Set);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setSync", SetSync);
     NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
     NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
@@ -98,6 +100,19 @@ namespace sophist {
     NanReturnUndefined();
   }
 
+  NAN_METHOD(Sophist::GetSync) {
+    NanScope();
+    Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
+    size_t keysize;
+    char *key = NanCString(args[0], &keysize);
+    char *value = sophist::GetSync(wrapper->db, key);
+    if (NULL == value) {
+      NanReturnValue(Null());
+    } else {
+      NanReturnValue(String::New(value));
+    }
+  }
+
   NAN_METHOD(Sophist::Set) {
     NanScope();
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
@@ -107,6 +122,17 @@ namespace sophist {
     char *value = NanCString(args[1], &valuesize);
     Local<Function> cb = args[2].As<Function>();
     sophist::Set(wrapper->db, key, value, new NanCallback(cb));
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(Sophist::SetSync) {
+    NanScope();
+    Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
+    size_t keysize;
+    size_t valuesize;
+    char *key = NanCString(args[0], &keysize);
+    char *value = NanCString(args[1], &valuesize);
+    sophist::SetSync(wrapper->db, key, value);
     NanReturnUndefined();
   }
 

@@ -7,6 +7,7 @@
 
 namespace sophist {
   void Get(void *, char *, NanCallback *);
+  char *GetSync(void *, char *);
 }
 
 #endif

@@ -30,4 +30,11 @@ namespace sophist {
     SetWorker *worker = new SetWorker(db, key, value, callback);
     NanAsyncQueueWorker(worker);
   }
+
+  void SetSync(void *db, char *key, char *value) {
+    size_t keysize = strlen(key) + 1;
+    size_t valuesize = strlen(value) + 1;
+    int rc = sp_set(db, key, keysize, value, valuesize);
+    if (-1 == rc) NanThrowError(sp_error(db));
+  }
 }

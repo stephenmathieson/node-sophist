@@ -31,9 +31,17 @@
 
   Set `key=value` in the database, invoking `cb(err)`.
 
+#### Sophist#setSync(key, value)
+
+  Synchronously set `key=value`.
+
 #### Sophist#get(key, cb)
 
   Get the value of `key`, invoking `cb(err, value)`.
+
+#### Sophist#getSync(key)
+
+  Synchronously get `key`.
 
 #### Sophist#delete(key, cb)
 

@@ -22,7 +22,9 @@ namespace sophist {
       static NAN_METHOD(Open);
       static NAN_METHOD(Close);
       static NAN_METHOD(Get);
+      static NAN_METHOD(GetSync);
       static NAN_METHOD(Set);
+      static NAN_METHOD(SetSync);
       static NAN_METHOD(Delete);
       static NAN_METHOD(Count);
       static NAN_METHOD(Clear);

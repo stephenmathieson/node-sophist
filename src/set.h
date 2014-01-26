@@ -4,6 +4,7 @@
 
 namespace sophist {
   void Set(void *, char *, char *, NanCallback *);
+  void SetSync(void *, char *, char *);
 }
 
 #endif
