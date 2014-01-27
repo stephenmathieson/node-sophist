@@ -3,10 +3,9 @@
 #include "sophist.h"
 #include "iterator.h"
 
-using namespace v8;
 using namespace sophist;
 
-void InitAll(Handle<Object> exports) {
+void InitAll(v8::Handle<v8::Object> exports) {
   Iterator::Init();
   Sophist::Init(exports);
 }

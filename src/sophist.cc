@@ -12,8 +12,6 @@
 #include "clear.h"
 #include "iterator.h"
 
-using namespace v8;
-
 namespace sophist {
   Sophist::Sophist() {
     db = NULL;
@@ -23,8 +21,8 @@ namespace sophist {
 
   Sophist::~Sophist() {}
 
-  void Sophist::Init(Handle<Object> exports) {
-    Local<FunctionTemplate> tpl = FunctionTemplate::New(New);
+  void Sophist::Init(v8::Handle<v8::Object> exports) {
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(New);
     tpl->SetClassName(NanSymbol("Sophist"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(tpl, "open", Open);
@@ -37,8 +35,8 @@ namespace sophist {
     NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
-    Persistent<Function> constructor =
-      Persistent<Function>::New(tpl->GetFunction());
+    v8::Persistent<v8::Function> constructor =
+      v8::Persistent<v8::Function>::New(tpl->GetFunction());
     exports->Set(NanSymbol("Sophist"), constructor);
   }
 
@@ -53,9 +51,9 @@ namespace sophist {
 
   NAN_METHOD(Sophist::Open) {
     NanScope();
-    Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
-    Local<Object> options = args[0].As<Object>();
-    Local<Function> cb = args[1].As<Function>();
+    Sophist *wrapper = node::ObjectWrap::Unwrap<Sophist>(args.This());
+    v8::Local<v8::Object> options = args[0].As<v8::Object>();
+    v8::Local<v8::Function> cb = args[1].As<v8::Function>();
     bool create = NanBooleanOptionValue(options
       , NanSymbol("createIfMissing")
       , true);
@@ -85,7 +83,7 @@ namespace sophist {
   NAN_METHOD(Sophist::Close) {
     NanScope();
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
-    Local<Function> cb = args[0].As<Function>();
+    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
     sophist::Close(wrapper, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -95,7 +93,7 @@ namespace sophist {
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
     size_t keysize;
     char *key = NanCString(args[0], &keysize);
-    Local<Function> cb = args[1].As<Function>();
+    v8::Local<v8::Function> cb = args[1].As<v8::Function>();
     sophist::Get(wrapper->db, key, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -107,9 +105,9 @@ namespace sophist {
     char *key = NanCString(args[0], &keysize);
     char *value = sophist::GetSync(wrapper->db, key);
     if (NULL == value) {
-      NanReturnValue(Null());
+      NanReturnValue(v8::Null());
     } else {
-      NanReturnValue(String::New(value));
+      NanReturnValue(v8::String::New(value));
     }
   }
 
@@ -120,7 +118,7 @@ namespace sophist {
     size_t valuesize;
     char *key = NanCString(args[0], &keysize);
     char *value = NanCString(args[1], &valuesize);
-    Local<Function> cb = args[2].As<Function>();
+    v8::Local<v8::Function> cb = args[2].As<v8::Function>();
     sophist::Set(wrapper->db, key, value, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -141,7 +139,7 @@ namespace sophist {
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
     size_t keysize;
     char *key = NanCString(args[0], &keysize);
-    Local<Function> cb = args[1].As<Function>();
+    v8::Local<v8::Function> cb = args[1].As<v8::Function>();
     sophist::Delete(wrapper->db, key, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -149,7 +147,7 @@ namespace sophist {
   NAN_METHOD(Sophist::Count) {
     NanScope();
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
-    Local<Function> cb = args[0].As<Function>();
+    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
     sophist::Count(wrapper->db, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -157,7 +155,7 @@ namespace sophist {
   NAN_METHOD(Sophist::Clear) {
     NanScope();
     Sophist *wrapper = ObjectWrap::Unwrap<Sophist>(args.This());
-    Local<Function> cb = args[0].As<Function>();
+    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
     sophist::Clear(wrapper->db, new NanCallback(cb));
     NanReturnUndefined();
   }
@@ -165,9 +163,9 @@ namespace sophist {
   NAN_METHOD(Sophist::NewIterator) {
     NanScope();
 
-    Local<Object> options;
+    v8::Local<v8::Object> options;
     if (args.Length() > 0 && args[0]->IsObject()) {
-      options = Local<Object>::Cast(args[0]);
+      options = v8::Local<v8::Object>::Cast(args[0]);
     }
 
     NanReturnValue(Iterator::NewInstance(
