@@ -1,6 +1,6 @@
 {
   "name": "sophist",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A (maintained) Sophia binding.",
   "keywords": [
     "sophia",
