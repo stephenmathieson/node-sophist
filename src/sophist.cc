@@ -109,6 +109,8 @@ namespace sophist {
     } else {
       NanReturnValue(v8::String::New(value));
     }
+    delete key;
+    delete value;
   }
 
   NAN_METHOD(Sophist::Set) {
@@ -132,6 +134,8 @@ namespace sophist {
     char *value = NanCString(args[1], &valuesize);
     sophist::SetSync(wrapper->db, key, value);
     NanReturnUndefined();
+    delete key;
+    delete value;
   }
 
   NAN_METHOD(Sophist::Delete) {
