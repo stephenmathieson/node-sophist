@@ -28,6 +28,7 @@ namespace sophist {
       static NAN_METHOD(Delete);
       static NAN_METHOD(Count);
       static NAN_METHOD(Clear);
+      static NAN_METHOD(NewTransaction);
       static NAN_METHOD(NewIterator);
   };
 }

@@ -11,6 +11,7 @@
 #include "count.h"
 #include "clear.h"
 #include "iterator.h"
+#include "transaction.h"
 
 namespace sophist {
   Sophist::Sophist() {
@@ -35,6 +36,7 @@ namespace sophist {
     NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "transaction", NewTransaction);
     v8::Persistent<v8::Function> constructor =
       v8::Persistent<v8::Function>::New(tpl->GetFunction());
     exports->Set(NanSymbol("Sophist"), constructor);
@@ -176,5 +178,10 @@ namespace sophist {
         args.This()
       , options
     ));
+  }
+
+  NAN_METHOD(Sophist::NewTransaction) {
+    NanScope();
+    NanReturnValue(Transaction::NewInstance(args.This()));
   }
 }

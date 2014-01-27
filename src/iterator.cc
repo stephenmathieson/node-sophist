@@ -106,13 +106,13 @@ namespace sophist {
   Iterator::NewInstance(v8::Local<v8::Object> sp, v8::Local<v8::Object> opts) {
     NanScope();
     v8::Local<v8::Object> instance;
-    v8::Local<v8::FunctionTemplate> constructorHandle =
+    v8::Local<v8::FunctionTemplate> constructor =
       NanPersistentToLocal(iterator_constructor);
     v8::Handle<v8::Value> argv[2] = {
         sp
       , opts
     };
-    instance = constructorHandle->GetFunction()->NewInstance(2, argv);
+    instance = constructor->GetFunction()->NewInstance(2, argv);
     return instance;
   }
 }

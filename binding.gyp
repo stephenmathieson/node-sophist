@@ -21,6 +21,9 @@
         "src/iterator.cc",
         "src/iterator_next.cc",
         "src/iterator_end.cc",
+        "src/transaction.cc",
+        "src/transaction_commit.cc",
+        "src/transaction_rollback.cc",
       ]
     }
   ]

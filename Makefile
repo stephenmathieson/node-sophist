@@ -21,7 +21,7 @@ lib-cov: $(JS)
 	@rm -rf $@
 	$(JSCOVERAGE) lib $@
 
-node_modules: package.json
+node_modules:
 	@npm install
 
 clean:
