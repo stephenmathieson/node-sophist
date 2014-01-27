@@ -82,6 +82,38 @@
 
   End the iteration cycle, invoking `cb(err)`.
 
+#### Sophist#transaction
+
+  Start a Sophia transaction.
+
+  During a transaction, updates (`set`, `delete`) are not written to the database until `transacion#commit()` is called.
+
+  Opening more than one transaction at a time will produce errors.
+
+  See [sp_begin(3)](http://sphia.org/sp_begin.html) for more details.
+
+#### Transaction#set(key, value)
+
+  Create a pending `set` operation.  Operation will not be written until `#commit()` is called.
+
+  Returns the transaction for chaining.
+
+#### Transaction#delete(key)
+
+  Create a pending `delete` operation.  Operation will not be written until `#commit()` is called.
+
+  Returns the transaction for chaining.
+
+#### Transaction#commit(cb)
+
+  Commit the transaction operations, invoking `cb(err)`.
+
+#### Transaction#rollback(cb)
+
+  Disregard the transaction operations, invoking `cb(err)`.
+
+  Committed operations may not be rolled back.
+
 ## Credits
 
   Sophist is heavily inspired by [node-sophia](https://github.com/mmalecki/node-sophia) and [libsphia](https://github.com/sphia/libsphia).
