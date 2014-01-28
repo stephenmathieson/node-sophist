@@ -1,7 +1,7 @@
 var Sophist = require('..');
 var assert = require('better-assert');
 
-describe('Sophist#transaction', function () {
+describe('Sophist#readStream', function () {
 
   var db;
 
