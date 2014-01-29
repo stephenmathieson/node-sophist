@@ -19,13 +19,11 @@ describe('levelup(sophist).createWriteStream', function () {
     db.close(done);
   });
 
-  it('should create a Writable stream', function () {
+  it('should create a Writable stream', function (done) {
     var ws = db.createWriteStream();
-    ws.write({ key: 'name', value: 'Yuri Irsenovich Kim' });
-    ws.write({ key: 'dob', value: '16 February 1941' });
-    ws.write({ key: 'spouse', value: 'Kim Young-sook' });
-    ws.write({ key: 'occupation', value: 'Clown' });
-    ws.on('close', function () {
+
+    ws.on('close', function (err) {
+      if (err) throw err;
       db.get('name', function (err, value) {
         if (err) throw err;
         assert('Yuri Irsenovich Kim' == value);
@@ -44,5 +42,11 @@ describe('levelup(sophist).createWriteStream', function () {
         });
       });
     });
+
+    ws.write({ key: 'name', value: 'Yuri Irsenovich Kim' });
+    ws.write({ key: 'dob', value: '16 February 1941' });
+    ws.write({ key: 'spouse', value: 'Kim Young-sook' });
+    ws.write({ key: 'occupation', value: 'Clown' });
+    ws.end();
   });
 });
