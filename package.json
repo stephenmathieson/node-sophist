@@ -17,7 +17,8 @@
   "devDependencies": {
     "better-assert": "~1.0.0",
     "mocha": "~1.17.0",
-    "rimraf": "~2.2.6"
+    "rimraf": "~2.2.6",
+    "levelup": "~0.18.2"
   },
   "scripts": {
     "test": "mocha -R spec",

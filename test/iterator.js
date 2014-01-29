@@ -99,7 +99,7 @@ describe('Sophist#iterator', function () {
     });
 
     // TODO refactor: pyramid of DOOM
-    it('should provide NULLs when it reaches the end', function (done) {
+    it('should provide `undefined` when it reaches the end', function (done) {
       db.set('baz', 'qax', function (err) {
         if (err) return done(err);
 
@@ -111,8 +111,8 @@ describe('Sophist#iterator', function () {
 
           iterator.next(function (err, key, value) {
             if (err) return done(err);
-            assert(null === key);
-            assert(null === value);
+            assert(undefined === key);
+            assert(undefined === value);
             done();
           });
         });
@@ -148,8 +148,8 @@ describe('Sophist#iterator', function () {
             assert(123 == value);
             iterator.next(function (err, key, value) {
               assert(null === err);
-              assert(null === key);
-              assert(null === value);
+              assert(undefined === key);
+              assert(undefined === value);
               done();
             });
           });
@@ -176,8 +176,8 @@ describe('Sophist#iterator', function () {
           assert(123 == value);
           iterator.next(function (err, key, value) {
             if (err) return done(err);
-            assert(null === key);
-            assert(null === value);
+            assert(undefined === key);
+            assert(undefined === value);
             iterator.end(done);
           });
         });
@@ -211,8 +211,8 @@ describe('Sophist#iterator', function () {
       var iterator = db.iterator({ start: 'nope' });
       iterator.next(function (err, key, value) {
         if (err) return done(err);
-        assert(null === key);
-        assert(null === value);
+        assert(undefined === key);
+        assert(undefined === value);
         iterator.end(done);
       });
     });
@@ -275,8 +275,8 @@ describe('Sophist#iterator', function () {
         assert(123 == value);
         iterator.next(function (err, key, value) {
           if (err) return done(err);
-          assert(null === key);
-          assert(null === value);
+          assert(undefined === key);
+          assert(undefined === value);
           iterator.end(done);
         });
       });
@@ -308,8 +308,8 @@ describe('Sophist#iterator', function () {
         assert(789 == value);
         iterator.next(function (err, key, value) {
           if (err) return done(err);
-          assert(null === key);
-          assert(null === value);
+          assert(undefined === key);
+          assert(undefined === value);
           done();
         });
       });

@@ -1,6 +1,11 @@
 
 # Release Histroy
 
+## Unreleased (HEAD)
+
+  * Change iteration end `null` -> `undefined`
+  * Add primitive [LevelUP](https://github.com/rvagg/node-levelup) compatibility
+
 ## 0.1.0 (Jan 27th, 2014)
 
   * Fix error handling (NAN expects weird stuff with `errmsg`)

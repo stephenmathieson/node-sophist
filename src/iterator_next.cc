@@ -55,12 +55,10 @@ namespace sophist {
           };
           callback->Call(3, argv);
         } else {
-          v8::Local<v8::Value> argv[3] = {
-            v8::Local<v8::Value>::New(v8::Null()),
-            v8::Local<v8::Value>::New(v8::Null()),
+          v8::Local<v8::Value> argv[1] = {
             v8::Local<v8::Value>::New(v8::Null())
           };
-          callback->Call(3, argv);
+          callback->Call(1, argv);
         }
       }
 

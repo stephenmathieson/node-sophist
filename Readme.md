@@ -1,7 +1,7 @@
 
 # sophist
 
-  A (maintained) Sophia binding.
+  A (maintained) Sophia binding, mostly compatible with [LevelUP](https://github.com/rvagg/node-levelup).
 
 [![Build Status](https://travis-ci.org/stephenmathieson/node-sophist.png?branch=master)](https://travis-ci.org/stephenmathieson/node-sophist)
 
@@ -113,6 +113,18 @@
   Disregard the transaction operations, invoking `cb(err)`.
 
   Committed operations may not be rolled back.
+
+## LevelUP Support
+
+  Basic LevelUP support is available.  The following is (*mostly*) supported:
+
+  - `levelup(location, { db: Sophist })`
+  - `levelup#get`
+  - `levelup#put`
+  - `levelup#del`
+  - `levelup#batch` (chainable and array)
+  - `levelup#createReadStream`
+  - `levelup#creatWriteStream`
 
 ## Credits
 
