@@ -49,9 +49,11 @@ namespace sophist {
 
     // unknown error
     char *err = sp_error(sp->db);
-    if (NULL == err) err = strdup("Unknown transaction error");
-    NanThrowError(err);
-    delete err;
+    if (NULL == err) {
+      NanThrowError("Unknown transaction error");
+    } else {
+      NanThrowError(err);
+    }
     NanReturnUndefined();
   }
 
