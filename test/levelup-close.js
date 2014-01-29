@@ -15,8 +15,8 @@ describe('levelup(sophist).close', function () {
 
   it('should emit "closed"', function (done) {
     var db = levelup('./testdb', { db: Sophist });
-
-    db.on('ready', function () {
+    db.open(function (err) {
+      if (err) throw err;
       db.on('closed', done);
       db.close();
     });
