@@ -1,5 +1,5 @@
 
-# Release Histroy
+# Release History
 
 ## Unreleased (HEAD)
 
