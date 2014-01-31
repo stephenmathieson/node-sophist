@@ -15,7 +15,7 @@ test: build node_modules
 coverage.html: node_modules lib-cov $(TESTS)
 	@SOPHIST_COV=1 \
 		MOCHA_REPORTER=html-cov \
-		$(MAKE) test > coverate.html
+		$(MAKE) test > coverage.html
 
 lib-cov: $(JS)
 	@rm -rf $@
@@ -25,7 +25,7 @@ node_modules:
 	@npm install
 
 clean:
-	@rm -rf lib-cov testdb
+	@rm -rf lib-cov testdb coverage.html
 	@node-gyp clean
 
 .PHONY: test clean

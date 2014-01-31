@@ -1,6 +1,6 @@
 build/
 testdb/
 node_modules/
-coverate.html
+coverage.html
 lib-cov/
 npm-debug.log
