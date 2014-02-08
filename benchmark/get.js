@@ -32,6 +32,15 @@ suite('Sophist#get', function () {
   bench('get missing key', function (next) {
     db.get('abc123', next);
   });
+
+  bench('synchronous get existing random key', function () {
+    var key = 'key-' + Math.floor(Math.random() * 1000);
+    db.getSync(key);
+  });
+
+  bench('synchronous get missing key', function () {
+    db.getSync('abc123');
+  });
 });
 
 suite('LevelDOWN#get', function () {

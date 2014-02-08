@@ -32,6 +32,18 @@ suite('Sophist#delete', function () {
   bench('delete 1000 char key', function (next) {
     db.delete(key1000, next);
   });
+
+  bench('synchronous delete 1 char key/value', function () {
+    db.deleteSync('k');
+  });
+
+  bench('synchronous delete 100 char key', function () {
+    db.deleteSync(key100);
+  });
+
+  bench('synchronous delete 1000 char key', function () {
+    db.deleteSync(key1000);
+  });
 });
 
 suite('LevelDOWN#del', function () {

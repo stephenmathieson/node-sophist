@@ -34,6 +34,18 @@ suite('Sophist#set', function () {
   bench('set 1000 char key/value', function (next) {
     db.set(key1000, value1000, next);
   });
+
+  bench('synchronous set 1 char key/value', function () {
+    db.setSync('k', 'v');
+  });
+
+  bench('synchronous set 100 char key/value', function () {
+    db.setSync(key100, value100);
+  });
+
+  bench('synchronous set 1000 char key/value', function () {
+    db.setSync(key1000, value1000);
+  });
 });
 
 suite('LevelDOWN#put', function () {
