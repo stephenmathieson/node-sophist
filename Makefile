@@ -1,5 +1,6 @@
 
 MOCHA = ./node_modules/.bin/mocha
+MATCHA = ./node_modules/.bin/matcha
 JSCOVERAGE ?= jscoverage
 MOCHA_REPORTER ?= spec
 JS = index.js $(wildcard lib/*.js)
@@ -17,6 +18,9 @@ coverage.html: node_modules lib-cov $(TESTS)
 		MOCHA_REPORTER=html-cov \
 		$(MAKE) test > coverage.html
 
+benchmarks: node_modules build
+	@$(MATCHA)
+
 lib-cov: $(JS)
 	@rm -rf $@
 	$(JSCOVERAGE) lib $@
@@ -28,4 +32,4 @@ clean:
 	@rm -rf lib-cov testdb coverage.html
 	@node-gyp clean
 
-.PHONY: test clean
+.PHONY: test clean benchmarks
