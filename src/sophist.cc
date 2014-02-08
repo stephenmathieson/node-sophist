@@ -33,6 +33,7 @@ namespace sophist {
     NODE_SET_PROTOTYPE_METHOD(tpl, "set", Set);
     NODE_SET_PROTOTYPE_METHOD(tpl, "setSync", SetSync);
     NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "deleteSync", DeleteSync);
     NODE_SET_PROTOTYPE_METHOD(tpl, "count", Count);
     NODE_SET_PROTOTYPE_METHOD(tpl, "clear", Clear);
     NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", NewIterator);
@@ -136,8 +137,6 @@ namespace sophist {
     char *value = NanCString(args[1], &valuesize);
     sophist::SetSync(wrapper->db, key, value);
     NanReturnUndefined();
-    delete key;
-    delete value;
   }
 
   NAN_METHOD(Sophist::Delete) {
@@ -147,6 +146,15 @@ namespace sophist {
     char *key = NanCString(args[0], &keysize);
     v8::Local<v8::Function> cb = args[1].As<v8::Function>();
     sophist::Delete(wrapper->db, key, new NanCallback(cb));
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(Sophist::DeleteSync) {
+    NanScope();
+    Sophist *self = ObjectWrap::Unwrap<Sophist>(args.This());
+    size_t keysize;
+    char *key = NanCString(args[0], &keysize);
+    sophist::DeleteSync(self->db, key);
     NanReturnUndefined();
   }
 

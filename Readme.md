@@ -47,6 +47,10 @@
 
   Delete `key` from the database, invoking `cb(err)`.
 
+#### Sophist#deleteSync(key)
+
+  Synchronously delete `key`.
+
 #### Sophist#count(cb)
 
   Get the number of keys in the database, invoking `cb(err, num)`.

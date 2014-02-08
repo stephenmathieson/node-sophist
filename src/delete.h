@@ -7,6 +7,7 @@
 
 namespace sophist {
   void Delete(void *, char *, NanCallback *);
+  void DeleteSync(void *, char *);
 }
 
 #endif

@@ -27,4 +27,10 @@ namespace sophist {
     DeleteWorker *worker = new DeleteWorker(db, key, callback);
     NanAsyncQueueWorker(worker);
   }
+
+  void DeleteSync(void *db, char *key) {
+    size_t keysize = strlen(key) + 1;
+    if (-1 == sp_delete(db, key, keysize))
+      NanThrowError(sp_error(db));
+  }
 }

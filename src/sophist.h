@@ -26,6 +26,7 @@ namespace sophist {
       static NAN_METHOD(Set);
       static NAN_METHOD(SetSync);
       static NAN_METHOD(Delete);
+      static NAN_METHOD(DeleteSync);
       static NAN_METHOD(Count);
       static NAN_METHOD(Clear);
       static NAN_METHOD(NewTransaction);
