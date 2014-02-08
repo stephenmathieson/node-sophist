@@ -6,10 +6,17 @@ var Sophist = require('..');
 describe('levelup(sophist).close', function () {
   it('should emit "closing"', function (done) {
     var db = levelup('./testdb', { db: Sophist });
+    var emitted = false;
 
     db.on('ready', function () {
-      db.on('closing', done);
-      db.close();
+      db.on('closing', function () {
+        emitted = true;
+      });
+      db.close(function (err) {
+        if (err) throw err;
+        assert(emitted);
+        done();
+      });
     });
   });
 
