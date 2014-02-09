@@ -1,6 +1,10 @@
 
 # Release History
 
+## 0.2.1 (Feb 8th, 2014)
+
+  * Remove `package.json` from deps/list to work around [npm#4630](https://github.com/npm/npm/issues/4630).
+
 ## 0.2.0 (Feb 8th, 2014)
 
   * Refactor transactions for nearly a 90% performance boost
