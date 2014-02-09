@@ -1,7 +1,7 @@
 
 # Release History
 
-## Unreleased (HEAD)
+## 0.2.0 (Feb 8th, 2014)
 
   * Refactor transactions for nearly a 90% performance boost
   * Add `#deleteSync`
