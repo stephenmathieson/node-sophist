@@ -10,8 +10,15 @@
 namespace sophist {
   static v8::Persistent<v8::FunctionTemplate> transaction_constructor;
 
-  Transaction::Transaction() {}
-  Transaction::~Transaction() {}
+  Transaction::Transaction() {
+    operations = NULL;
+  }
+
+  Transaction::~Transaction() {
+    if (operations)
+      list_destroy(operations);
+    operations = NULL;
+  }
 
   void Transaction::Init () {
     v8::Local<v8::FunctionTemplate> tpl =
@@ -21,6 +28,8 @@ namespace sophist {
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
     NODE_SET_PROTOTYPE_METHOD(tpl, "commit", Transaction::Commit);
     NODE_SET_PROTOTYPE_METHOD(tpl, "rollback", Transaction::Rollback);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "set", Transaction::Set);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Transaction::Delete);
   }
 
   NAN_METHOD(Transaction::New) {
@@ -34,6 +43,10 @@ namespace sophist {
 
     transaction->Wrap(args.This());
     transaction->db = sp->db;
+    transaction->operations = list_new();
+    if (NULL == transaction->operations) {
+      return NanThrowError("Failed to allocate new list.");
+    }
 
     int rc = sp_begin(sp->db);
 
@@ -59,17 +72,47 @@ namespace sophist {
 
   NAN_METHOD(Transaction::Commit) {
     NanScope();
-    Transaction *t = node::ObjectWrap::Unwrap<Transaction>(args.This());
+    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
     v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::TransactionCommit(t, new NanCallback(cb));
+    sophist::TransactionCommit(self, new NanCallback(cb));
     NanReturnUndefined();
   }
 
   NAN_METHOD(Transaction::Rollback) {
     NanScope();
-    Transaction *t = node::ObjectWrap::Unwrap<Transaction>(args.This());
+    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
     v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::TransactionRollback(t, new NanCallback(cb));
+    sophist::TransactionRollback(self, new NanCallback(cb));
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(Transaction::Set) {
+    NanScope();
+
+    size_t keysize = 0;
+    size_t valuesize = 0;
+    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+    Operation *operation = new Operation;
+
+    operation->key = NanCString(args[0], &keysize);
+    operation->value = NanCString(args[1], &valuesize);
+    operation->type = OPERATION_SET;
+    list_rpush(self->operations, list_node_new(operation));
+
+    NanReturnUndefined();
+  }
+
+  NAN_METHOD(Transaction::Delete) {
+    NanScope();
+
+    size_t keysize = 0;
+    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+    Operation *operation = new Operation;
+
+    operation->key = NanCString(args[0], &keysize);
+    operation->type = OPERATION_DELETE;
+    list_rpush(self->operations, list_node_new(operation));
+
     NanReturnUndefined();
   }
 

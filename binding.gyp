@@ -3,10 +3,11 @@
     {
       "target_name": "sophist",
       "dependencies": [
-        "<(module_root_dir)/deps/sophia/sophia.gyp:sophia"
+        "<(module_root_dir)/deps/list/list.gyp:list",
+        "<(module_root_dir)/deps/sophia/sophia.gyp:sophia",
       ],
       "include_dirs": [
-        "<!(node -e \"require('nan')\")"
+        "<!(node -e \"require('nan')\")",
       ],
       "sources": [
         "src/binding.cc",
