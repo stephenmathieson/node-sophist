@@ -3,6 +3,7 @@
 
 ## Unreleased (HEAD)
 
+  * Refactor transactions for nearly a 90% performance boost
   * Add `#deleteSync`
   * Change iteration end `null` -> `undefined`
   * Add primitive [LevelUP](https://github.com/rvagg/node-levelup) compatibility
