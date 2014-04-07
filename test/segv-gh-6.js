@@ -40,7 +40,7 @@ describe('Sophist#get segfaults (gh-6)', function() {
   it('should not segfault on random gets', function (done) {
     var count = 100;
     (function again() {
-      var key = 'key__' + n(1, 500);
+      var key = 'key__' + n(0, 999);
       db.get(key, function (err, value) {
         if (err) return done(err);
         var obj = JSON.parse(value);
