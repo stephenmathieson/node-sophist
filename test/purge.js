@@ -12,7 +12,9 @@ describe('Sophist#purge', function () {
   });
 
   afterEach(function (done) {
-    db.close(done);
+    db.close(function () {
+      done();
+    });
   });
 
   it('should remove all temporary and incomplete data', function (done) {

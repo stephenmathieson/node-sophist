@@ -1,3 +1,6 @@
 [submodule "deps/sophia"]
   path = deps/sophia
   url = https://github.com/pmwkaa/sophia.git
+[submodule "deps/sophia.cc"]
+  path = deps/sophia.cc
+  url = https://github.com/stephenmathieson/sophia.cc.git

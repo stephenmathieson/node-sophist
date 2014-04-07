@@ -150,7 +150,7 @@ describe('Sophist#iterator', function () {
               assert(null === err);
               assert(undefined === key);
               assert(undefined === value);
-              done();
+              iterator.end(done);
             });
           });
         });

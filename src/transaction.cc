@@ -1,129 +1,162 @@
 
 #include <node.h>
 #include <nan.h>
-#include <sophia.h>
 #include "sophist.h"
 #include "transaction.h"
-#include "transaction_commit.h"
-#include "transaction_rollback.h"
 
 namespace sophist {
-  static v8::Persistent<v8::FunctionTemplate> transaction_constructor;
 
-  Transaction::Transaction() {
-    operations = NULL;
-  }
+v8::Persistent<v8::FunctionTemplate> Transaction::constructor;
 
-  Transaction::~Transaction() {
-    if (operations)
-      list_destroy(operations);
-    operations = NULL;
-  }
+/**
+ * Async commit worker.
+ */
 
-  void Transaction::Init () {
-    v8::Local<v8::FunctionTemplate> tpl =
-      v8::FunctionTemplate::New(Transaction::New);
-    NanAssignPersistent(v8::FunctionTemplate, transaction_constructor, tpl);
-    tpl->SetClassName(NanSymbol("Transaction"));
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "commit", Transaction::Commit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "rollback", Transaction::Rollback);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "set", Transaction::Set);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Transaction::Delete);
-  }
+class CommitWorker : public NanAsyncWorker {
+public:
+  CommitWorker(Transaction *self, NanCallback *callback)
+  : NanAsyncWorker(callback), self(self) {}
 
-  NAN_METHOD(Transaction::New) {
-    NanScope();
-    Transaction *transaction = new Transaction();
-    Sophist *sp = node::ObjectWrap::Unwrap<Sophist>(args[0]->ToObject());
-    if (NULL == sp->db) {
-      return NanThrowError("Unable to create a transaction "
-                           "on an unopen database.");
+  void
+  Execute() {
+    sophia::SophiaReturnCode rc = self->t->Commit();
+    if (sophia::SOPHIA_SUCCESS != rc) {
+      errmsg = strdup(self->sp->Error(rc));
     }
+  }
 
-    transaction->Wrap(args.This());
-    transaction->db = sp->db;
-    transaction->operations = list_new();
-    if (NULL == transaction->operations) {
-      return NanThrowError("Failed to allocate new list.");
+private:
+  Transaction *self;
+};
+
+/**
+ * Async rollback worker.
+ */
+
+class RollbackWorker : public NanAsyncWorker {
+public:
+  RollbackWorker(Transaction *self, NanCallback *callback)
+  : NanAsyncWorker(callback), self(self) {}
+
+  void
+  Execute() {
+    sophia::SophiaReturnCode rc = self->t->Rollback();
+    if (sophia::SOPHIA_SUCCESS != rc) {
+      errmsg = strdup(self->sp->Error(rc));
     }
-
-    int rc = sp_begin(sp->db);
-
-    // success
-    if (0 == rc) {
-      NanReturnValue(args.This());
-    }
-
-    // until multiple transactions are supported...
-    if (1 == rc) {
-      return NanThrowError("Another transaction is active");
-    }
-
-    // unknown error
-    char *err = sp_error(sp->db);
-    if (NULL == err) {
-      NanThrowError("Unknown transaction error");
-    } else {
-      NanThrowError(err);
-    }
-    NanReturnUndefined();
   }
 
-  NAN_METHOD(Transaction::Commit) {
-    NanScope();
-    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
-    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::TransactionCommit(self, new NanCallback(cb));
-    NanReturnUndefined();
-  }
+private:
+  Transaction *self;
+};
 
-  NAN_METHOD(Transaction::Rollback) {
-    NanScope();
-    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
-    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::TransactionRollback(self, new NanCallback(cb));
-    NanReturnUndefined();
-  }
+Transaction::Transaction() {}
 
-  NAN_METHOD(Transaction::Set) {
-    NanScope();
+Transaction::~Transaction() {}
 
-    size_t keysize = 0;
-    size_t valuesize = 0;
-    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
-    Operation *operation = new Operation;
-
-    operation->key = NanCString(args[0], &keysize);
-    operation->value = NanCString(args[1], &valuesize);
-    operation->type = OPERATION_SET;
-    list_rpush(self->operations, list_node_new(operation));
-
-    NanReturnUndefined();
-  }
-
-  NAN_METHOD(Transaction::Delete) {
-    NanScope();
-
-    size_t keysize = 0;
-    Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
-    Operation *operation = new Operation;
-
-    operation->key = NanCString(args[0], &keysize);
-    operation->type = OPERATION_DELETE;
-    list_rpush(self->operations, list_node_new(operation));
-
-    NanReturnUndefined();
-  }
-
-  v8::Local<v8::Object>
-  Transaction::NewInstance(v8::Local<v8::Object> sp) {
-    NanScope();
-    v8::Local<v8::Object> instance;
-    v8::Local<v8::FunctionTemplate> constructor =
-      NanPersistentToLocal(transaction_constructor);
-    v8::Handle<v8::Value> argv[1] = { sp };
-    instance = constructor->GetFunction()->NewInstance(1, argv);
-    return instance;
-  }
+void
+Transaction::Init() {
+  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+    Transaction::New
+  );
+  NanAssignPersistent(v8::FunctionTemplate, constructor, tpl);
+  tpl->SetClassName(NanSymbol("Transaction"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "commit", Commit);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "rollback", Rollback);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "set", Set);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Delete);
 }
+
+v8::Local<v8::Object>
+Transaction::NewInstance(v8::Local<v8::Object> sophist) {
+  NanScope();
+  v8::Local<v8::Object> instance;
+  v8::Local<v8::FunctionTemplate> c = NanPersistentToLocal(
+    constructor
+  );
+  v8::Handle<v8::Value> argv[1] = { sophist };
+  instance = c->GetFunction()->NewInstance(1, argv);
+  return instance;
+}
+
+NAN_METHOD(Transaction::New) {
+  NanScope();
+  Sophist *sophist = ObjectWrap::Unwrap<Sophist>(args[0]->ToObject());
+  Transaction *self = new Transaction;
+
+  if (!sophist->sp->IsOpen()) {
+    return NanThrowError(
+      "Unable to create a transaction on an unopen database"
+    );
+  }
+
+  self->Wrap(args.This());
+  self->sophist = sophist;
+  self->sp = sophist->sp;
+  self->t = new sophia::Transaction(self->sp);
+
+  sophia::SophiaReturnCode rc = self->t->Begin();
+  if (sophia::SOPHIA_SUCCESS != rc) {
+    NanThrowError(self->sp->Error(rc));
+  }
+
+  NanReturnValue(args.This());
+}
+
+NAN_METHOD(Transaction::Commit) {
+  NanScope();
+  Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+  v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+  CommitWorker *worker = new CommitWorker(self, new NanCallback(fn));
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(Transaction::Rollback) {
+  NanScope();
+  Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+  v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+  RollbackWorker *worker = new RollbackWorker(self, new NanCallback(fn));
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(Transaction::Set) {
+  NanScope();
+  size_t keysize;
+  size_t valuesize;
+  char *key = NanCString(args[0], &keysize);
+  char *value = NanCString(args[1], &valuesize);
+  Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+
+  sophia::SophiaReturnCode rc = self->t->Set(
+      key
+    // , keysize
+    , value
+    // , valuesize
+  );
+
+  delete key;
+  delete value;
+
+  if (sophia::SOPHIA_SUCCESS != rc) {
+    NanThrowError(self->sp->Error(rc));
+  }
+  NanReturnUndefined();
+}
+
+NAN_METHOD(Transaction::Delete) {
+  NanScope();
+  size_t keysize;
+  char *key = NanCString(args[0], &keysize);
+  Transaction *self = node::ObjectWrap::Unwrap<Transaction>(args.This());
+  sophia::SophiaReturnCode rc = self->t->Delete(key);
+  delete key;
+  if (sophia::SOPHIA_SUCCESS != rc) {
+    NanThrowError(self->sp->Error(rc));
+  }
+  NanReturnUndefined();
+}
+
+} // namespace sophist

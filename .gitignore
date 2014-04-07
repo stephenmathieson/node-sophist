@@ -1,5 +1,5 @@
 build/
-testdb/
+testdb*
 node_modules/
 coverage.html
 lib-cov/

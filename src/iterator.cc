@@ -1,118 +1,185 @@
 
 #include <node.h>
 #include <nan.h>
-#include <sophia.h>
 #include "sophist.h"
 #include "iterator.h"
-#include "iterator_next.h"
-#include "iterator_end.h"
 
 namespace sophist {
-  static v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 
-  Iterator::Iterator() {
-    endsize = 0;
-    end = NULL;
+v8::Persistent<v8::FunctionTemplate> Iterator::constructor;
+
+/**
+ * Async next worker.
+ */
+
+class NextWorker : public NanAsyncWorker {
+public:
+  NextWorker(Iterator *self, NanCallback *callback)
+  : NanAsyncWorker(callback), self(self) {
+    result = NULL;
+  };
+
+  void
+  Execute() {
+    result = self->it->Next();
   }
 
-  Iterator::~Iterator() {
-    if (end) delete end;
-  }
-
-  void Iterator::Init () {
-    v8::Local<v8::FunctionTemplate> tpl =
-      v8::FunctionTemplate::New(Iterator::New);
-    NanAssignPersistent(v8::FunctionTemplate, iterator_constructor, tpl);
-    tpl->SetClassName(NanSymbol("Iterator"));
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "next", Iterator::Next);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "end", Iterator::End);
-  }
-
-  NAN_METHOD(Iterator::New) {
-    NanScope();
-    Iterator *iterator = new Iterator();
-    Sophist *sp = node::ObjectWrap::Unwrap<Sophist>(args[0]->ToObject());
-    if (NULL == sp->db) {
-      return NanThrowError("Unable to create an iterator "
-                           "on an unopen database!");
+  void
+  HandleOKCallback() {
+    if (result) {
+      v8::Local<v8::Value> argv[] = {
+          NanNewLocal<v8::Value>(v8::Null())
+        , NanNewLocal<v8::String>(v8::String::New(result->key))
+        , NanNewLocal<v8::String>(v8::String::New(result->value))
+      };
+      delete result;
+      callback->Call(3, argv);
+    } else {
+      v8::Local<v8::Value> argv[] = {
+        NanNewLocal<v8::Value>(v8::Null())
+      };
+      callback->Call(1, argv);
     }
+  }
 
-    iterator->Wrap(args.This());
-    iterator->wrapper = sp;
+private:
+  sophia::IteratorResult *result;
+  Iterator *self;
+};
 
-    v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(args[1]);
-    bool reverse = NanBooleanOptionValue(options
-      , NanSymbol("reverse")
-      , false);
+/**
+ * Async end worker.
+ */
 
-    bool gte = NanBooleanOptionValue(options
-      , NanSymbol("gte")
-      , false);
+class EndWorker : public NanAsyncWorker {
+public:
+  EndWorker(Iterator *self, NanCallback *callback)
+  : NanAsyncWorker(callback), self(self) {}
 
-    char *start = NULL;
-    size_t startsize = 0;
-
-    if (options->Has(NanSymbol("start"))) {
-      start = NanCString(options->Get(NanSymbol("start")).As<v8::String>()
-        , &startsize);
+  void
+  Execute() {
+    sophia::SophiaReturnCode rc = self->it->End();
+    if (sophia::SOPHIA_SUCCESS != rc) {
+      errmsg = strdup(self->sp->Error(rc));
     }
-
-    if (options->Has(NanSymbol("end"))) {
-      iterator->end =
-        NanCString(options->Get(NanSymbol("end")).As<v8::String>()
-          , &iterator->endsize);
-      // HACK: compensate for strlen(key) + 1
-      // see pmwkaa/sophia#43
-      iterator->endsize++;
-    }
-
-    iterator->order = true == reverse
-      ? SPLT
-      : gte
-        ? SPGTE
-        : SPGT;
-    iterator->cursor = sp_cursor(sp->db
-      , iterator->order
-      , start
-      , startsize);
-
-    delete start;
-
-    if (NULL == iterator->cursor) {
-      return NanThrowError(sp_error(sp->db));
-    }
-
-    NanReturnValue(args.This());
   }
 
-  NAN_METHOD(Iterator::Next) {
-    NanScope();
-    Iterator *iterator = ObjectWrap::Unwrap<Iterator>(args.This());
-    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::IteratorNext(iterator, new NanCallback(cb));
-    NanReturnUndefined();
-  }
+private:
+  Iterator *self;
+};
 
-  NAN_METHOD(Iterator::End) {
-    NanScope();
-    Iterator *iterator = ObjectWrap::Unwrap<Iterator>(args.This());
-    v8::Local<v8::Function> cb = args[0].As<v8::Function>();
-    sophist::IteratorEnd(iterator, new NanCallback(cb));
-    NanReturnUndefined();
-  }
+Iterator::Iterator() {};
 
-  v8::Local<v8::Object>
-  Iterator::NewInstance(v8::Local<v8::Object> sp, v8::Local<v8::Object> opts) {
-    NanScope();
-    v8::Local<v8::Object> instance;
-    v8::Local<v8::FunctionTemplate> constructor =
-      NanPersistentToLocal(iterator_constructor);
-    v8::Handle<v8::Value> argv[2] = {
-        sp
-      , opts
-    };
-    instance = constructor->GetFunction()->NewInstance(2, argv);
-    return instance;
-  }
+Iterator::~Iterator() {};
+
+void
+Iterator::Init() {
+  v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+    Iterator::New
+  );
+  NanAssignPersistent(v8::FunctionTemplate, constructor, tpl);
+  tpl->SetClassName(NanSymbol("Iterator"));
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "next", Next);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "end", End);
 }
+
+v8::Local<v8::Object>
+Iterator::NewInstance(
+    v8::Local<v8::Object> sophist
+  , v8::Local<v8::Object> options
+) {
+  NanScope();
+  v8::Local<v8::Object> instance;
+  v8::Local<v8::FunctionTemplate> c = NanPersistentToLocal(
+    constructor
+  );
+  v8::Handle<v8::Value> argv[2] = { sophist, options };
+  instance = c->GetFunction()->NewInstance(2, argv);
+  return instance;
+}
+
+NAN_METHOD(Iterator::New) {
+  NanScope();
+  Sophist *sophist = ObjectWrap::Unwrap<Sophist>(
+    args[0]->ToObject()
+  );
+  v8::Local<v8::Object> options = v8::Local<v8::Object>::Cast(args[1]);
+
+  if (!sophist->sp->IsOpen()) {
+    return NanThrowError(
+      "Cannot create an iterator on an unopen database"
+    );
+  }
+
+  Iterator *self = new Iterator;
+  self->Wrap(args.This());
+  self->sophist = sophist;
+  self->sp = sophist->sp;
+
+  bool reverse = NanBooleanOptionValue(
+      options
+    , NanSymbol("reverse")
+    , false
+  );
+
+  bool gte = NanBooleanOptionValue(
+      options
+    , NanSymbol("gte")
+    , false
+  );
+
+  const char *start = NULL;
+  const char *end = NULL;
+  size_t startsize = 0;
+  size_t endsize = 0;
+
+  if (options->Has(NanSymbol("start"))) {
+    start = NanCString(
+        options->Get(NanSymbol("start")).As<v8::String>()
+      , &startsize
+    );
+  }
+
+  if (options->Has(NanSymbol("end"))) {
+    end = NanCString(
+        options->Get(NanSymbol("end")).As<v8::String>()
+      , &endsize
+    );
+  }
+
+  self->it = new sophia::Iterator(
+      self->sp
+    , reverse ? SPLT : gte ? SPGTE : SPGT
+    , start
+    , start ? startsize + 1 : 0
+    , end
+    , end ? endsize + 1 : 0
+  );
+
+  sophia::SophiaReturnCode rc = self->it->Begin();
+  if (sophia::SOPHIA_SUCCESS != rc) {
+    NanThrowError(self->sp->Error(rc));
+  }
+  NanReturnValue(args.This());
+}
+
+NAN_METHOD(Iterator::Next) {
+  NanScope();
+  Iterator *self = ObjectWrap::Unwrap<Iterator>(args.This());
+  v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+  NextWorker *worker = new NextWorker(self, new NanCallback(fn));
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(Iterator::End) {
+  NanScope();
+  Iterator *self = ObjectWrap::Unwrap<Iterator>(args.This());
+  v8::Local<v8::Function> fn = args[0].As<v8::Function>();
+  EndWorker *worker = new EndWorker(self, new NanCallback(fn));
+  NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+} // namespace sophist
