@@ -132,7 +132,7 @@
 
 ## Credits
 
-  Sophist is heavily inspired by [node-sophia](https://github.com/mmalecki/node-sophia) and [libsphia](https://github.com/sphia/libsphia).
+  Sophist was originally inspired by [node-sophia](https://github.com/mmalecki/node-sophia) and [libsphia](https://github.com/sphia/libsphia), and is now built on top of [sophia.cc](https://github.com/stephenmathieson/sophia.cc).
 
 ## License 
 
