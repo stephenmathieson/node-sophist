@@ -134,28 +134,6 @@
 
   Sophist was originally inspired by [node-sophia](https://github.com/mmalecki/node-sophia) and [libsphia](https://github.com/sphia/libsphia), and is now built on top of [sophia.cc](https://github.com/stephenmathieson/sophia.cc).
 
-## State / Undefined Behavior
-
-  Neither Sophist nor Sophia itself record state of the database.  This means you'll likely have some [demons flying out of your nose](http://www.catb.org/jargon/html/N/nasal-demons.html) if you're not careful.
-
-  For example, attempting to read/write an unopen database will cause segfaults:
-
-```
-$ node
-> var Sophist = require('./')
-> var db = new Sophist('./testdb2')
-> db.setSync('foo', 'bar')
-Segmentation fault: 11
-```
-
-```
-$ node
-> var Sophist = require('./')
-> var db = new Sophist('./testdb')
-> db.get('key', function (err, value) { console.log(arguments) })
-Segmentation fault: 11
-```
-
 ## License 
 
 (The MIT License)

@@ -1,6 +1,11 @@
 
 # Release History
 
+## 0.2.2 (April 20th, 2014)
+
+ * Prevent segfaults when attempting to read/write an unopened db
+ * Refactor to use [sophia.cc](https://github.com/stephenmathieson/sophia.cc)
+
 ## 0.2.1 (Feb 8th, 2014)
 
   * Remove `package.json` from deps/list to work around [npm#4630](https://github.com/npm/npm/issues/4630).
