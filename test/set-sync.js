@@ -5,36 +5,53 @@ var Sophist = require('..');
 describe('Sophist#setSync', function () {
   var db;
 
-  before(function (done) {
+  before(function () {
     db = new Sophist('./testdb');
-    db.open(done);
+  })
+
+  describe('on an unopened database', function () {
+    it('should throw', function () {
+      var err;
+      try {
+        db.setSync('foo', 'bar');
+      } catch (e) {
+        err = e;
+      }
+      assert(err);
+    });
   });
 
-  beforeEach(function (done) {
-    db.clear(done);
-  });
+  describe('on an open database', function () {
+    before(function (done) {
+      db.open(done);
+    });
 
-  after(function (done) {
-    db.close(done);
-  });
+    beforeEach(function (done) {
+      db.clear(done);
+    });
 
-  it('should set key=value', function () {
-    db.setSync('foo', 'bar');
-    var value = db.getSync('foo');
-    assert('bar' == value);
-  });
+    after(function (done) {
+      db.close(done);
+    });
 
-  it('should throw errors', function (done) {
-    var iterator = db.iterator();
-    var err = null;
-
-    try {
+    it('should set key=value', function () {
       db.setSync('foo', 'bar');
-    } catch (e) {
-      err = e;
-    }
+      var value = db.getSync('foo');
+      assert('bar' == value);
+    });
 
-    assert(err);
-    iterator.end(done);
+    it('should throw errors', function (done) {
+      var iterator = db.iterator();
+      var err = null;
+
+      try {
+        db.setSync('foo', 'bar');
+      } catch (e) {
+        err = e;
+      }
+
+      assert(err);
+      iterator.end(done);
+    });
   });
 });
