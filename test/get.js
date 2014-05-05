@@ -32,6 +32,16 @@ describe('Sophist#get', function () {
       db.close(done);
     });
 
+    it('should require a callback', function () {
+      var err;
+      try {
+        db.get('abc');
+      } catch (e) {
+        err = e;
+      }
+      assert('Callback required' == err.message);
+    });
+
     it('should get a value', function (done) {
       db.set('foo', 'bar', function (err) {
         if (err) return done(err);

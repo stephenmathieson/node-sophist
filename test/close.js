@@ -12,6 +12,17 @@ describe('Sophist#close', function() {
     });
   });
 
+  it('should require a callback', function () {
+    var err;
+    var db = new Sophist('./testdb');
+    try {
+      db.close();
+    } catch (e) {
+      err = e;
+    }
+    assert('Callback required' == err.message);
+  });
+
   describe('closing an unopen database', function () {
     it('should produce handleable errors', function (done) {
       var db = new Sophist('./testdb');

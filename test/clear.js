@@ -27,6 +27,16 @@ describe('Sophist#clear', function () {
       db.close(done);
     });
 
+    it('should require a callback', function () {
+      var err;
+      try {
+        db.clear();
+      } catch (e) {
+        err = e;
+      }
+      assert('Callback required' == err.message);
+    });
+
     it('should clear all keys', function (done) {
       db.clear(function (err) {
         if (err) throw err;

@@ -27,6 +27,16 @@ describe('Sophist#delete', function () {
       db.close(done);
     });
 
+    it('should require a callback', function () {
+      var err;
+      try {
+        db.delete('abc');
+      } catch (e) {
+        err = e;
+      }
+      assert('Callback required' == err.message);
+    });
+
     it('should delete a key/value pair', function (done) {
       db.set('foo', 'bar', function (err) {
         if (err) return done(err);

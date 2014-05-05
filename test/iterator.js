@@ -85,6 +85,17 @@ describe('Sophist#iterator', function () {
       });
     });
 
+    it('should require a callback', function () {
+      var err;
+      iterator = db.iterator();
+      try {
+        iterator.next();
+      } catch (e) {
+        err = e;
+      }
+      assert('Callback required' == err.message);
+    });
+
     it('should start at the first key (by default)', function (done) {
       db.set('foo', 'bar', function (err) {
         if (err) return done(err);

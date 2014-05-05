@@ -31,6 +31,16 @@ describe('Sophist#count', function () {
       db.close(done);
     });
 
+    it('should require a callback', function () {
+      var err;
+      try {
+        db.count();
+      } catch (e) {
+        err = e;
+      }
+      assert('Callback required' == err.message);
+    });
+
     it('should return the number of keys in the db', function (done) {
       db.set('foo', 'bar', function (err) {
         if (err) throw err;
