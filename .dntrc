@@ -1,0 +1,17 @@
+## DNT config file
+## see https://github.com/rvagg/dnt
+
+NODE_VERSIONS="\
+  v0.10.22 \
+  v0.8.26  \
+"
+OUTPUT_PREFIX="sophist-"
+TEST_CMD="\
+  cd /dnt/ &&                                                    \
+  git submodule update --init &&                                 \
+  npm install &&                                                 \
+  node_modules/.bin/node-gyp --nodedir /usr/src/node/ rebuild && \
+  node_modules/.bin/mocha test/*.js;                             \
+"
+COPY_CMD="rsync -aAXx --exclude build /dnt-src/ /dnt/"
+LOG_OK_CMD="grep "." | sed '/[0-9\s]* passing/ a ok' | tail --lines=1"

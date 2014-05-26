@@ -16,11 +16,12 @@
   },
   "devDependencies": {
     "better-assert": "~1.0.0",
-    "mocha": "~1.17.0",
-    "rimraf": "~2.2.6",
+    "leveldown": "~0.10.2",
     "levelup": "~0.18.2",
     "matcha": "~0.4.1",
-    "leveldown": "~0.10.2"
+    "mocha": "~1.17.0",
+    "node-gyp": "~0.13.1",
+    "rimraf": "~2.2.6"
   },
   "scripts": {
     "test": "mocha -R spec",
