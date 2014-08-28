@@ -1,4 +1,5 @@
 
-module.exports = process.env.SOPHIST_COV
-  ? require('./lib-cov/sophist')
-  : require('./lib/sophist');
+var binding = require('bindings')('sophist');
+var Database = binding.Database;
+
+module.exports = Database;
