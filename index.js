@@ -4,7 +4,6 @@
  */
 
 var yieldly = require('yieldly');
-var delegates = require('delegates');
 var binding = require('bindings')('sophist');
 var Database = binding.Database;
 

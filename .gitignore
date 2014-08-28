@@ -4,3 +4,4 @@ node_modules/
 coverage.html
 lib-cov/
 npm-debug.log
+test-db
