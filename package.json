@@ -11,22 +11,16 @@
     "url": "https://github.com/stephenmathieson/node-sophist.git"
   },
   "dependencies": {
-    "nan": "~0.8.0",
-    "bindings": "~1.1.1"
+    "bindings": "^1.2.1",
+    "nan": "^1.3.0"
   },
   "devDependencies": {
-    "better-assert": "~1.0.0",
-    "mocha": "~1.17.0",
-    "rimraf": "~2.2.6",
-    "levelup": "~0.18.2",
-    "matcha": "~0.4.1",
-    "leveldown": "~0.10.2"
+    "leveldown": "^1.0.0",
+    "matcha": "^0.5.0",
+    "mocha": "^1.21.4",
+    "rimraf": "^2.2.8"
   },
-  "scripts": {
-    "test": "mocha -R spec",
-    "install": "node-gyp rebuild"
-  },
+  "scripts": {},
   "main": "index",
-  "license": "MIT",
-  "gypfile": true
+  "license": "MIT"
 }
