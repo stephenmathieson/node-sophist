@@ -17,7 +17,9 @@ clean:
 	@rm -rf testdb test-*
 
 test: build
-	@$(BIN)/mocha --reporter $(REPORTER)
+	$(BIN)/gnode $(BIN)/_mocha \
+	  --reporter $(REPORTER) \
+	  --require co-mocha
 
 benchmarks:
 	@$(BIN)/matcha

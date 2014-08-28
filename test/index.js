@@ -5,52 +5,49 @@ var fs = require('fs');
 var exists = fs.existsSync;
 var Sophist = require('..');
 
+var TEST_DB = './test-db';
+
 describe('Sophist', function () {
+  var db;
+
+  beforeEach(cleanup);
+  beforeEach(function *() {
+    db = new Sophist(TEST_DB);
+    yield db.open();
+  });
+
+  afterEach(function *() {
+    yield db.close();
+  });
+
   describe('#open(fn)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db')
-    });
-
-    afterEach(function (done) {
-      db.close(done);
+    beforeEach(function * () {
+      yield db.close();
     });
 
     it('should open create a new database', function (done) {
       db.open(function (err) {
         if (err) return done(err);
-        assert(exists('./test-db'));
+        assert(exists(TEST_DB));
         done();
       });
     });
   });
 
   describe('#openSync()', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db')
-    });
-
-    afterEach(function () {
-      db.closeSync();
+    beforeEach(function * () {
+      yield db.close();
     });
 
     it('should open create a new database', function () {
       db.openSync();
-      assert(exists('./test-db'));
+      assert(exists(TEST_DB));
     });
   });
 
   describe('#close(fn)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db')
+    beforeEach(function * () {
+      yield db.close();
     });
 
     it('should close an opened database', function (done) {
@@ -68,11 +65,8 @@ describe('Sophist', function () {
   });
 
   describe('#closeSync', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db')
+    beforeEach(function * () {
+      yield db.close();
     });
 
     it('should close an opened database', function () {
@@ -87,108 +81,84 @@ describe('Sophist', function () {
     });
   });
 
-  describe('#set(key, value, fn)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function (done) {
-      db = new Sophist('./test-db');
-      db.open(done);
+  describe('#set(key, value, [fn])', function () {
+    it('should set a key', function *() {
+      yield db.set('foo', 'bar');
+      var value = yield db.get('foo');
+      assert('bar' == value);
     });
 
-    afterEach(function (done) {
-      db.close(done);
-    });
-
-    it('should set a key', function (done) {
-      db.set('foo', 'bar', function (err) {
-        if (err) return done(err);
-        db.get('foo', function (err, value) {
+    describe('given a callback', function () {
+      it('should work', function (done) {
+        db.set('foo', 'bar', function (err) {
           if (err) return done(err);
-          assert('bar' == value);
-          done();
+          db.get('foo', function (err, value) {
+            if (err) return done(err);
+            assert('bar' == value);
+            done();
+          });
         });
       });
     });
   });
 
   describe('#setSync(key, value)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db');
-      db.openSync();
-    });
-
-    afterEach(function () {
-      db.closeSync();
-    });
-
     it('should set a key', function () {
       db.setSync('foo', 'bar');
       assert('bar' == db.getSync('foo'));
     });
   });
 
-  describe('#get(key, fn)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function (done) {
-      db = new Sophist('./test-db');
-      db.open(done);
-    });
-    beforeEach(function (done) {
-      db.set('key1', 'value1', function (err) {
-        if (err) return done(err);
-        db.set('key2', 'value2', done);
-      });
+  describe('#get(key, [fn])', function () {
+    beforeEach(function *() {
+      yield db.set('key1', 'value1');
+      yield db.set('key2', 'value2');
     });
 
-    afterEach(function (done) {
-      db.close(done);
-    });
-
-    it('should return the value of key', function (done) {
-      db.get('key1', function (err, value) {
-        if (err) return done(err);
-        assert('value1' == value);
-        db.get('key2', function (err, value) {
-          if (err) return done(err);
-          assert('value2' == value);
-          done();
-        });
-      });
+    it('should return the value of the key', function *() {
+      var value = yield db.get('key1');
+      assert('value1' == value);
+      value = yield db.get('key2');
+      assert('value2' == value);
     });
 
     describe('if key is missing', function () {
-      it('should return null', function (done) {
-        db.get('key3', function (err, value) {
+      it('should return null', function *() {
+        var val = yield db.get('key3');
+        assert(null == val);
+      });
+    });
+
+    describe('given a callback', function () {
+      it('should work', function (done) {
+        db.get('key1', function (err, value) {
           if (err) return done(err);
-          assert(null == value);
-          done();
+          assert('value1' == value);
+          db.get('key2', function (err, value) {
+            if (err) return done(err);
+            assert('value2' == value);
+            done();
+          });
+        });
+      });
+
+      describe('if key is missing', function () {
+        it('should still work', function (done) {
+          db.get('key3', function (err, value) {
+            if (err) return done(err);
+            assert(null == value);
+            done();
+          });
         });
       });
     });
   });
 
   describe('#getSync(key)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db');
-      db.openSync();
-    });
     beforeEach(function () {
       db.setSync('key1', 'value1');
       db.setSync('key2', 'value2');
     })
-
-    afterEach(function () {
-      db.closeSync();
-    });
 
     it('should return the value of key', function () {
       assert('value1' == db.getSync('key1'));
@@ -202,35 +172,32 @@ describe('Sophist', function () {
     });
   });
 
-  describe('#delete(key, fn)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function (done) {
-      db = new Sophist('./test-db');
-      db.open(done);
-    });
-    beforeEach(function (done) {
-      db.set('key1', 'value1', function (err) {
-        if (err) return done(err);
-        db.set('key2', 'value2', done);
-      });
+  describe('#delete(key, [fn])', function () {
+    beforeEach(function *() {
+      yield db.set('key1', 'value1');
+      yield db.set('key2', 'value2');
     });
 
-    afterEach(function (done) {
-      db.close(done);
+    it('should remove key', function *() {
+      yield db.delete('key1');
+      var val = yield db.get('key1');
+      assert(null == val);
+      val = yield db.get('key2');
+      assert('value2' == val);
     });
 
-    it('should remove key', function (done) {
-      db.delete('key1', function (err) {
-        if (err) return done(err);
-        db.get('key1', function (err, value) {
+    describe('given a callback', function () {
+      it('should work', function (done) {
+        db.delete('key1', function (err) {
           if (err) return done(err);
-          assert(null == value);
-          db.get('key2', function (err, value) {
+          db.get('key1', function (err, value) {
             if (err) return done(err);
-            assert('value2' == value);
-            done();
+            assert(null == value);
+            db.get('key2', function (err, value) {
+              if (err) return done(err);
+              assert('value2' == value);
+              done();
+            });
           });
         });
       });
@@ -238,21 +205,10 @@ describe('Sophist', function () {
   });
 
   describe('#deleteSync(key)', function () {
-    var db;
-
-    beforeEach(cleanup);
-    beforeEach(function () {
-      db = new Sophist('./test-db');
-      db.openSync();
-    });
     beforeEach(function () {
       db.setSync('key1', 'value1');
       db.setSync('key2', 'value2');
     })
-
-    afterEach(function () {
-      db.closeSync();
-    });
 
     it('should remove key', function () {
       db.deleteSync('key1');
@@ -262,22 +218,12 @@ describe('Sophist', function () {
   });
 
   describe('#iterator()', function () {
-    var db;
     var COUNT = 10;
 
-    beforeEach(cleanup);
-    beforeEach(function (done) {
-      db = new Sophist('./test-db');
-      db.open(done);
-    });
     beforeEach(function () {
       for (var i = 0; i < COUNT; i++)
         db.setSync('key' + i, 'value' + i);
     })
-
-    afterEach(function (done) {
-      db.close(done);
-    });
 
     it('should create an iterator', function () {
       var it = db.iterator();
@@ -336,5 +282,5 @@ describe('Sophist', function () {
 
 
 function cleanup(done) {
-  rmrf('./test-db', done);
+  rmrf(TEST_DB, done);
 }
