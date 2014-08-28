@@ -3,6 +3,7 @@ BIN := node_modules/.bin
 JS = $(wildcard index.js lib/*.js)
 SRC = $(wildcard src/*.*)
 TESTS = $(wildcard test/*.js)
+REPORTER ?= spec
 
 build: node_modules $(SRC)
 	@node-gyp rebuild
@@ -16,7 +17,7 @@ clean:
 	@rm -rf testdb test-*
 
 test: build
-	@$(BIN)/mocha --reporter spec
+	@$(BIN)/mocha --reporter $(REPORTER)
 
 benchmarks:
 	@$(BIN)/matcha
