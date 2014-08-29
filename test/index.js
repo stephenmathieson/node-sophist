@@ -225,9 +225,10 @@ describe('Sophist', function () {
         db.setSync('key' + i, 'value' + i);
     })
 
-    it('should create an iterator', function () {
+    it('should create an iterator', function (done) {
       var it = db.iterator();
       assert(it);
+      it.end(done);
     });
 
     describe('#next(fn)', function () {
