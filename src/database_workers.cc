@@ -36,7 +36,7 @@ CloseWorker::CloseWorker(
 void CloseWorker::Execute() {
 
   // cleanup any open iterators
-  std::map<uint32_t, class Iterator *> iterators = database->iterators;
+  std::map<uint32_t, sophist::Iterator *> iterators = database->iterators;
   if (!iterators.empty()) {
     std::map<uint32_t, sophist::Iterator *>::iterator it;
     // loop, ending/releasing each open iterator
