@@ -2,11 +2,16 @@
 #include "iterator.h"
 #include "iterator_workers.h"
 
+#include <stdio.h>
+
 namespace sophist {
 
 static v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 
-Iterator::Iterator(Database *database) : database(database) {}
+Iterator::Iterator(
+    Database *database
+  , uint32_t id
+) : database(database), id(id) {}
 
 Iterator::~Iterator() {}
 
@@ -22,7 +27,8 @@ void Iterator::Init() {
 }
 
 v8::Local<v8::Object> Iterator::NewInstance(
-  v8::Local<v8::Object> database
+    v8::Local<v8::Object> database
+  , v8::Local<v8::Number> id
 ) {
   NanEscapableScope();
 
@@ -32,8 +38,8 @@ v8::Local<v8::Object> Iterator::NewInstance(
   );
 
   // TODO: options, etc
-  v8::Handle<v8::Value> argv[1] = { database };
-  instance = c->GetFunction()->NewInstance(1, argv);
+  v8::Handle<v8::Value> argv[2] = { database, id };
+  instance = c->GetFunction()->NewInstance(2, argv);
 
   return NanEscapeScope(instance);
 }
@@ -43,7 +49,11 @@ NAN_METHOD(Iterator::New) {
   Database *database = node::ObjectWrap::Unwrap<Database>(
     args[0]->ToObject()
   );
-  Iterator *iterator = new Iterator(database);
+  v8::Local<v8::Value> id = args[1];
+  Iterator *iterator = new Iterator(
+      database
+    , (uint32_t) id->Int32Value()
+  );
   iterator->it = new sophia::Iterator(database->sophia);
 
   sophia::SophiaReturnCode rc = iterator->it->Begin();

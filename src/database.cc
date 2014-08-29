@@ -11,7 +11,9 @@ namespace sophist {
 
 static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
-Database::Database(char *path) : path(path) {}
+Database::Database(char *path) : path(path) {
+  currentIteratorId = 0;
+}
 
 Database::~Database() {
   delete sophia;
@@ -40,6 +42,10 @@ void Database::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
 
   exports->Set(NanNew("Database"), tpl->GetFunction());
+}
+
+void Database::ReleaseIterator(uint32_t id) {
+  iterators.erase(id);
 }
 
 NAN_METHOD(Database::New) {
@@ -278,8 +284,17 @@ NAN_METHOD(Database::Delete) {
 
 NAN_METHOD(Database::Iterator) {
   NanScope();
-  v8::Local<v8::Object> it = Iterator::NewInstance(args.This());
-  NanReturnValue(it);
+  Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
+  uint32_t id = self->currentIteratorId++;
+  v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
+      args.This()
+    , NanNew<v8::Number>(id)
+  );
+  sophist::Iterator *iterator = node::ObjectWrap::Unwrap<sophist::Iterator>(
+    iteratorHandle
+  );
+  self->iterators[id] = iterator;
+  NanReturnValue(iteratorHandle);
 }
 
 }; // namespace sophist

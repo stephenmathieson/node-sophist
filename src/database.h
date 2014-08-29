@@ -2,9 +2,11 @@
 #ifndef DATABASE_H
 #define DATABASE_H 1
 
+#include <map>
 #include <node.h>
 #include <nan.h>
 #include "sophia-cc.h"
+#include "iterator.h"
 
 namespace sophist {
 
@@ -14,9 +16,11 @@ public:
   ~Database();
 
   static void Init(v8::Handle<v8::Object> exports);
+  void ReleaseIterator(uint32_t id);
 
   char *path;
   sophia::Sophia *sophia;
+  std::map<uint32_t, class Iterator *> iterators;
 
 private:
   static NAN_METHOD(New);
@@ -31,6 +35,8 @@ private:
   static NAN_METHOD(Delete);
   static NAN_METHOD(DeleteSync);
   static NAN_METHOD(Iterator);
+
+  uint32_t currentIteratorId;
 };
 
 }; // namespace sophist

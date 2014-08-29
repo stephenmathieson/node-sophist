@@ -45,4 +45,13 @@ void EndWorker::Execute() {
   }
 }
 
+void EndWorker::HandleOKCallback() {
+  // destroy the iterator on the db side
+  uint32_t id = iterator->id;
+  iterator->database->ReleaseIterator(id);
+  // normal callback
+  v8::Local<v8::Value> argv[] = { NanNull() };
+  callback->Call(1, argv);
+}
+
 } // namespace sophist
