@@ -2,6 +2,7 @@
   "name": "sophist",
   "version": "0.2.2",
   "description": "A (maintained) Sophia binding.",
+  "author": "Stephen Mathieson <me@stephenmathieson.com>",
   "keywords": [
     "sophia",
     "sophiadb"
@@ -23,7 +24,10 @@
     "mocha": "^1.21.4",
     "rimraf": "^2.2.8"
   },
-  "scripts": {},
   "main": "index",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "install": "node-gyp rebuild"
+  },
+  "gypfile": true
 }
