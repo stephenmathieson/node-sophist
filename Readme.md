@@ -1,160 +1,121 @@
 
 # sophist
 
-  A (maintained) Sophia binding, mostly compatible with [LevelUP](https://github.com/rvagg/node-levelup).
+  A (maintained) Sophia binding.
 
 [![Build Status](https://travis-ci.org/stephenmathieson/node-sophist.png?branch=master)](https://travis-ci.org/stephenmathieson/node-sophist)
 
 ## API
 
-### new Sophist(path)
+### var db = new Sophist(path);
 
-  Initialize a Sophia binding for `path`.
+  Create a db instance at `path`.
 
-#### Sophist#open([options], cb)
+#### db.open([fn]) / db.openSync()
 
-  Open/create the Sophia database with the given `options`, invoking `cb(err)`.
+  Open the database.
 
-  Options:
+  Examples:
 
-  * `createIfMissing` - boolean, default `true`
-  * `readOnly` - boolean, default `false`
-  * `gc` - boolean, default `true`
-  * `pageSize` - number, default `2048`
-  * `mergeWatermark` - number, default `100000`
+```js
+yield db.open();
+db.open(function (err) { /* ... */ });
+db.openSync();
+```
 
-#### Sophist#close(cb)
+#### db.close([fn]) / db.closeSync()
 
-  Close the Sophia database, invoking `cb(err)`.
+  Close the database.
 
-#### Sophist#set(key, value, cb)
+  Examples:
 
-  Set `key=value` in the database, invoking `cb(err)`.
+```js
+yield db.close();
+db.close(function (err) { /* ... */ });
+db.closeSync();
+```
 
-#### Sophist#setSync(key, value)
+#### db.set(key, value, [fn]) / db.setSync(key, value)
 
-  Synchronously set `key=value`.
+  Set `key` to `value` in the database.
 
-#### Sophist#get(key, cb)
+  Examples:
 
-  Get the value of `key`, invoking `cb(err, value)`.
+```js
+yield db.set('foo', 'bar');
+db.set('foo', 'bar', function (err) { /* ... */ });
+db.setSync('foo', 'bar');
+```
 
-#### Sophist#getSync(key)
+#### db.get(key, [fn]) / db.getSync(key)
 
-  Synchronously get `key`.
+  Get the value of `key`.
 
-#### Sophist#delete(key, cb)
+  Examples:
 
-  Delete `key` from the database, invoking `cb(err)`.
+```js
+var value = yield db.get('foo');
+db.get('foo', function (err, value) { /* ... */ });
+var value = db.getSync('foo');
+```
 
-#### Sophist#deleteSync(key)
+#### db.delete(key, [fn]) / db.deleteSync(key)
 
-  Synchronously delete `key`.
+  Delete `key` from the database.
 
-#### Sophist#count(cb)
+  Examples:
 
-  Get the number of keys in the database, invoking `cb(err, num)`.
+```js
+var value = yield db.delete('foo');
+db.delete('foo', function (err) { /* ... */ });
+var value = db.deleteSync('foo');
+```
 
-#### Sophist#clear(cb)
+#### var iterator = db.iterator()
 
-  Clear all keys from the database, invoking `cb(err)`.
+  Create an iterator.
 
-#### Sophist#purge(cb)
+  **NOTE**: Sophia does *not* support writes while an iterator is open.
 
-  Purge (delete) all incomplete / temporary data from the database.  This operation is **NOT** recoverable.
+##### iterator.next([fn])
 
-#### Sophist#iterator([options])
+  Get the next key/value pair from the iterator.
 
-  Create an `Iterator` for the database.
+  Upon reaching the last key, `null`s will be provided.
 
-  You may **not** write data while an iterator is open.
+  Examples:
 
-  Options:
+```js
+var arr = yield iterator.next(); // [key, value]
+iterator.next(function (err, key, value) { /* ... */ });
+```
 
-  * `reverse` - boolean, default `false`
-  * `start` - string, default `null`
-  * `end` - string, default `null`
-  * `gte` - boolean, default `false`
+##### iterator.end([fn])
 
-#### Iterator#next(cb)
+  End the iterator.
+  Examples:
 
-  Get the next `key/value` pair from the database, invoking `cb(err, key, value)`.
+```js
+yield iterator.end();
+iterator.end(function (err) { /* ... */ });
+```
 
-  When the iterator has cycled through all data, will call `cb(null, null, null)`.
+#### var transaction = db.transaction()
 
-#### Iterator#end(cb)
+  TODO
 
-  End the iteration cycle, invoking `cb(err)`.
+##### transaction.set(key, value)
 
-#### Sophist#transaction
+  TODO
 
-  Start a Sophia transaction.
+##### transaction.delete(key)
 
-  During a transaction, updates (`set`, `delete`) are not written to the database until `transacion#commit()` is called.
+  TODO
 
-  Opening more than one transaction at a time will produce errors.
+##### transaction.commit(fn)
 
-  See [sp_begin(3)](http://sphia.org/sp_begin.html) for more details.
+  TODO
 
-#### Transaction#set(key, value)
+## License
 
-  Create a pending `set` operation.  Operation will not be written until `#commit()` is called.
-
-  Returns the transaction for chaining.
-
-#### Transaction#delete(key)
-
-  Create a pending `delete` operation.  Operation will not be written until `#commit()` is called.
-
-  Returns the transaction for chaining.
-
-#### Transaction#commit(cb)
-
-  Commit the transaction operations, invoking `cb(err)`.
-
-#### Transaction#rollback(cb)
-
-  Disregard the transaction operations, invoking `cb(err)`.
-
-  Committed operations may not be rolled back.
-
-## LevelUP Support
-
-  Basic LevelUP support is available.  The following is (*mostly*) supported:
-
-  - `levelup(location, { db: Sophist })`
-  - `levelup#get`
-  - `levelup#put`
-  - `levelup#del`
-  - `levelup#batch` (chainable and array)
-  - `levelup#createReadStream`
-  - `levelup#creatWriteStream`
-
-## Credits
-
-  Sophist was originally inspired by [node-sophia](https://github.com/mmalecki/node-sophia) and [libsphia](https://github.com/sphia/libsphia), and is now built on top of [sophia.cc](https://github.com/stephenmathieson/sophia.cc).
-
-## License 
-
-(The MIT License)
-
-Copyright (c) 2014 Stephen Mathieson &lt;me@stephenmathieson.com&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  MIT
