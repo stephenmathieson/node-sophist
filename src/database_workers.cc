@@ -34,20 +34,8 @@ CloseWorker::CloseWorker(
 ) : DatabaseWorker(database, callback) {}
 
 void CloseWorker::Execute() {
-
   // cleanup any open iterators
-  std::map<uint32_t, sophist::Iterator *> iterators = database->iterators;
-  if (!iterators.empty()) {
-    std::map<uint32_t, sophist::Iterator *>::iterator it;
-    // loop, ending/releasing each open iterator
-    for (it = iterators.begin(); it != iterators.end() ; ++it) {
-      uint32_t id = it->first;
-      sophist::Iterator *iterator = it->second;
-      iterator->it->End();
-      database->ReleaseIterator(id);
-    }
-  }
-
+  database->ReleaseIterators();
   SophiaReturnCode rc = database->sophia->Close();
   if (SOPHIA_SUCCESS != rc) {
     SetErrorMessage(database->sophia->Error(rc));

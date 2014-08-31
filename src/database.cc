@@ -48,6 +48,20 @@ void Database::ReleaseIterator(uint32_t id) {
   iterators.erase(id);
 }
 
+void Database::ReleaseIterators() {
+  // cleanup any open iterators
+  if (!iterators.empty()) {
+    std::map<uint32_t, sophist::Iterator *>::iterator it;
+    // loop, ending/releasing each open iterator
+    for (it = iterators.begin(); it != iterators.end() ; ++it) {
+      uint32_t id = it->first;
+      sophist::Iterator *iterator = it->second;
+      iterator->it->End();
+      ReleaseIterator(id);
+    }
+  }
+}
+
 NAN_METHOD(Database::New) {
   NanScope();
 
@@ -99,7 +113,8 @@ NAN_METHOD(Database::Open) {
 NAN_METHOD(Database::CloseSync) {
   NanScope();
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-
+  // cleanup iterators (if any)
+  self->ReleaseIterators();
   SophiaReturnCode rc = self->sophia->Close();
   if (SOPHIA_SUCCESS != rc) {
     NanThrowError(self->sophia->Error(rc));

@@ -17,6 +17,7 @@ public:
 
   static void Init(v8::Handle<v8::Object> exports);
   void ReleaseIterator(uint32_t id);
+  void ReleaseIterators();
 
   char *path;
   sophia::Sophia *sophia;
