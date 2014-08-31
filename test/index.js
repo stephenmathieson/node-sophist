@@ -11,18 +11,23 @@ describe('Sophist', function () {
   var db;
 
   beforeEach(cleanup);
-  beforeEach(function *() {
+  beforeEach(function* () {
     db = new Sophist(TEST_DB);
     yield db.open();
   });
 
-  afterEach(function *() {
+  afterEach(function* () {
     yield db.close();
   });
 
   describe('#open(fn)', function () {
-    beforeEach(function * () {
+    beforeEach(function* () {
       yield db.close();
+    });
+
+    it('should be yieldable', function* () {
+      yield db.open();
+      assert(exists(TEST_DB));
     });
 
     it('should open create a new database', function (done) {
@@ -35,7 +40,7 @@ describe('Sophist', function () {
   });
 
   describe('#openSync()', function () {
-    beforeEach(function * () {
+    beforeEach(function* () {
       yield db.close();
     });
 
@@ -45,9 +50,21 @@ describe('Sophist', function () {
     });
   });
 
-  describe('#close(fn)', function () {
-    beforeEach(function * () {
+  describe('#close([fn])', function () {
+    beforeEach(function* () {
       yield db.close();
+    });
+
+    it('should be yield', function* () {
+      yield db.open();
+      yield db.close();
+      var err;
+      try {
+        yield db.set('foo', 'bar');
+      } catch (e) {
+        err = e;
+      }
+      assert(err && 'Database not open' == err.message);
     });
 
     it('should close an opened database', function (done) {
@@ -65,7 +82,7 @@ describe('Sophist', function () {
   });
 
   describe('#closeSync', function () {
-    beforeEach(function * () {
+    beforeEach(function* () {
       yield db.close();
     });
 
@@ -82,7 +99,7 @@ describe('Sophist', function () {
   });
 
   describe('#set(key, value, [fn])', function () {
-    it('should set a key', function *() {
+    it('should set a key', function* () {
       yield db.set('foo', 'bar');
       var value = yield db.get('foo');
       assert('bar' == value);
@@ -110,12 +127,12 @@ describe('Sophist', function () {
   });
 
   describe('#get(key, [fn])', function () {
-    beforeEach(function *() {
+    beforeEach(function* () {
       yield db.set('key1', 'value1');
       yield db.set('key2', 'value2');
     });
 
-    it('should return the value of the key', function *() {
+    it('should return the value of the key', function* () {
       var value = yield db.get('key1');
       assert('value1' == value);
       value = yield db.get('key2');
@@ -123,7 +140,7 @@ describe('Sophist', function () {
     });
 
     describe('if key is missing', function () {
-      it('should return null', function *() {
+      it('should return null', function* () {
         var val = yield db.get('key3');
         assert(null == val);
       });
@@ -173,12 +190,12 @@ describe('Sophist', function () {
   });
 
   describe('#delete(key, [fn])', function () {
-    beforeEach(function *() {
+    beforeEach(function* () {
       yield db.set('key1', 'value1');
       yield db.set('key2', 'value2');
     });
 
-    it('should remove key', function *() {
+    it('should remove key', function* () {
       yield db.delete('key1');
       var val = yield db.get('key1');
       assert(null == val);
@@ -223,7 +240,7 @@ describe('Sophist', function () {
     beforeEach(function () {
       for (var i = 0; i < COUNT; i++)
         db.setSync('key' + i, 'value' + i);
-    })
+    });
 
     it('should create an iterator', function (done) {
       var it = db.iterator();
@@ -231,7 +248,7 @@ describe('Sophist', function () {
       it.end(done);
     });
 
-    describe('#next(fn)', function () {
+    describe('#next([fn])', function () {
       var iterator;
 
       beforeEach(function () {
@@ -240,6 +257,12 @@ describe('Sophist', function () {
 
       afterEach(function (done) {
         iterator.end(done);
+      });
+
+      it('should be yieldable', function* () {
+        var arr = yield iterator.next();
+        assert('key0' == arr[0]);
+        assert('value0' == arr[1]);
       });
 
       it('should get the next key', function (done) {
@@ -272,7 +295,12 @@ describe('Sophist', function () {
       });
     });
 
-    describe('#end(fn)', function () {
+    describe('#end([fn])', function () {
+      it('should be yieldable', function* () {
+        var iterator = db.iterator();
+        yield iterator.end();
+      });
+
       it('should end the iterator', function (done) {
         var iterator = db.iterator();
         iterator.end(done);

@@ -52,5 +52,29 @@ function Sophist(path) {
  */
 
 Sophist.prototype.iterator = function () {
-  return this.database.iterator();
+  return new Iterator(this.database);
 };
+
+/**
+ * Create an iterator on the given `database`.
+ *
+ * @param {Database} database
+ * @api private
+ */
+
+function Iterator(database) {
+  this.iterator = database.iterator();
+}
+
+/**
+ * Proxy iterator methods through `yieldly`.
+ */
+
+[
+  'next',
+  'end',
+].forEach(function (method) {
+  Iterator.prototype[method] = yieldly(function (fn) {
+    this.iterator[method](fn);
+  });
+});
