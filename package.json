@@ -19,7 +19,6 @@
   "devDependencies": {
     "co-mocha": "^1.0.0",
     "gnode": "0.0.8",
-    "leveldown": "^1.0.0",
     "matcha": "^0.5.0",
     "mocha": "^1.21.4",
     "rimraf": "^2.2.8"
