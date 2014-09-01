@@ -56,6 +56,14 @@ Sophist.prototype.iterator = function () {
 };
 
 /**
+ * Create a transaction.
+ */
+
+Sophist.prototype.transaction = function () {
+  return new Transaction(this.database);
+};
+
+/**
  * Create an iterator on the given `database`.
  *
  * @param {Database} database
@@ -76,5 +84,44 @@ function Iterator(database) {
 ].forEach(function (method) {
   Iterator.prototype[method] = yieldly(function (fn) {
     this.iterator[method](fn);
+  });
+});
+
+/**
+ * Create an transaction on the given `database`.
+ *
+ * @param {Database} database
+ * @api private
+ */
+
+function Transaction(database) {
+  this.transaction = database.transaction();
+}
+
+/**
+ * Proxy write methods to C++.
+ */
+
+[
+  'set',
+  'delete',
+].forEach(function (method) {
+  Transaction.prototype[method] = function () {
+    this.transaction[method].apply(this.transaction, arguments);
+    return this;
+  };
+});
+
+
+/**
+ * Proxy transaction methods through `yieldly`.
+ */
+
+[
+  'commit',
+  'rollback',
+].forEach(function (method) {
+  Transaction.prototype[method] = yieldly(function (fn) {
+    this.transaction[method](fn);
   });
 });
