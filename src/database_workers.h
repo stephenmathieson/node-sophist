@@ -26,9 +26,19 @@ public:
   OpenWorker(
       Database *database
     , NanCallback *callback
+    , bool create_if_missing
+    , bool read_only
+    , uint32_t merge_watermark
+    , uint32_t page_size
   );
 
   virtual void Execute();
+
+private:
+  bool create_if_missing;
+  bool read_only;
+  uint32_t merge_watermark;
+  uint32_t page_size;
 };
 
 class CloseWorker : public DatabaseWorker {

@@ -15,10 +15,23 @@ namespace sophist {
 OpenWorker::OpenWorker(
     Database *database
   , NanCallback *callback
-) : DatabaseWorker(database, callback) {}
+  , bool create_if_missing
+  , bool read_only
+  , uint32_t merge_watermark
+  , uint32_t page_size
+) : DatabaseWorker(database, callback)
+  , create_if_missing(create_if_missing)
+  , read_only(read_only)
+  , merge_watermark(merge_watermark)
+  , page_size(page_size) {}
 
 void OpenWorker::Execute() {
-  SophiaReturnCode rc = database->sophia->Open();
+  SophiaReturnCode rc = database->sophia->Open(
+      create_if_missing
+    , read_only
+    , page_size
+    , merge_watermark
+  );
   if (SOPHIA_SUCCESS != rc) {
     SetErrorMessage(database->sophia->Error(rc));
   }

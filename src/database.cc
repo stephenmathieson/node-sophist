@@ -77,11 +77,45 @@ NAN_METHOD(Database::New) {
   NanReturnValue(args.This());
 }
 
+#define PARSE_OPEN_OPTIONS() ({                    \
+   create_if_missing = NanBooleanOptionValue(  \
+      options                                      \
+    , NanNew("createIfMissing")                    \
+    , true                                         \
+  );                                               \
+   read_only = NanBooleanOptionValue(          \
+      options                                      \
+    , NanNew("readOnly")                           \
+    , false                                        \
+  );                                               \
+   merge_watermark = NanUInt32OptionValue( \
+      options                                      \
+    , NanNew("mergeWatermark")                     \
+    , 100000                                       \
+  );                                               \
+   page_size = NanUInt32OptionValue(       \
+      options                                      \
+    , NanNew("pageSize")                           \
+    , 2048                                         \
+  );                                               \
+})
+
 NAN_METHOD(Database::OpenSync) {
   NanScope();
+  v8::Local<v8::Object> options;
+  bool create_if_missing, read_only;
+  uint32_t merge_watermark, page_size;
+  if (args.Length() && args[0]->IsObject()) {
+    options = args[0].As<v8::Object>();
+  }
+  PARSE_OPEN_OPTIONS();
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-
-  SophiaReturnCode rc = self->sophia->Open();
+  SophiaReturnCode rc = self->sophia->Open(
+      create_if_missing
+    , read_only
+    , page_size
+    , merge_watermark
+  );
   if (SOPHIA_SUCCESS != rc) {
     NanThrowError(self->sophia->Error(rc));
   }
@@ -90,18 +124,30 @@ NAN_METHOD(Database::OpenSync) {
 
 NAN_METHOD(Database::Open) {
   NanScope();
+  v8::Local<v8::Object> options;
+  v8::Local<v8::Function> callback;
+  bool create_if_missing, read_only;
+  uint32_t merge_watermark, page_size;
 
-  if (0 == args.Length() || !args[0]->IsFunction()) {
-    NanThrowError("callback required");
-    NanReturnUndefined();
+  if (0 == args.Length()) return NanThrowError("callback required");
+  if (args[0]->IsFunction()) {
+    callback = args[0].As<v8::Function>();
+  } else if (args[1]->IsFunction()) {
+    options = args[0].As<v8::Object>();
+    callback = args[1].As<v8::Function>();
+  } else {
+    return NanThrowError("callback required");
   }
 
-  v8::Local<v8::Function> callback = args[0].As<v8::Function>();
+  PARSE_OPEN_OPTIONS();
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-
   OpenWorker *worker = new OpenWorker(
       self
     , new NanCallback(callback)
+    , create_if_missing
+    , read_only
+    , merge_watermark
+    , page_size
   );
   // persist to prevent accidental GC
   v8::Local<v8::Object> _this = args.This();
@@ -126,8 +172,7 @@ NAN_METHOD(Database::Close) {
   NanScope();
 
   if (0 == args.Length() || !args[0]->IsFunction()) {
-    NanThrowError("callback required");
-    NanReturnUndefined();
+   return NanThrowError("callback required");
   }
 
   v8::Local<v8::Function> callback = args[0].As<v8::Function>();
@@ -149,8 +194,7 @@ NAN_METHOD(Database::SetSync) {
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
 
   if (2 > args.Length() || !args[0]->IsString() || !args[1]->IsString()) {
-    NanThrowError("key/value required");
-    NanReturnUndefined();
+    return NanThrowError("key/value required");
   }
 
   char *key = StringToCharArray(args[0]->ToString());
@@ -171,20 +215,11 @@ NAN_METHOD(Database::SetSync) {
 NAN_METHOD(Database::Set) {
   NanScope();
 
-  if (3 > args.Length()) {
-    NanThrowError("insufficient arguments");
-    NanReturnUndefined();
-  }
-
+  if (3 > args.Length()) return NanThrowError("insufficient arguments");
   if (!args[0]->IsString() || !args[1]->IsString()) {
-    NanThrowError("key/value required");
-    NanReturnUndefined();
+    return NanThrowError("key/value required");
   }
-
-  if (!args[2]->IsFunction()) {
-    NanThrowError("callback required");
-    NanReturnUndefined();
-  }
+  if (!args[2]->IsFunction()) return NanThrowError("callback required");
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
   char *key = StringToCharArray(args[0]->ToString());
@@ -210,8 +245,7 @@ NAN_METHOD(Database::GetSync) {
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
 
   if (0 == args.Length() || !args[0]->IsString()) {
-    NanThrowError("key required");
-    NanReturnUndefined();
+    return NanThrowError("key required");
   }
 
   char *key = StringToCharArray(args[0]->ToString());
@@ -230,8 +264,7 @@ NAN_METHOD(Database::Get) {
   NanScope();
 
   if (2 > args.Length() || !args[0]->IsString() || !args[1]->IsFunction()) {
-    NanThrowError("key/callback required");
-    NanReturnUndefined();
+    return NanThrowError("key/callback required");
   }
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
@@ -256,8 +289,7 @@ NAN_METHOD(Database::DeleteSync) {
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
 
   if (0 == args.Length() || !args[0]->IsString()) {
-    NanThrowError("key required");
-    NanReturnUndefined();
+    return NanThrowError("key required");
   }
 
   char *key = StringToCharArray(args[0]->ToString());
@@ -277,8 +309,7 @@ NAN_METHOD(Database::Delete) {
   NanScope();
 
   if (2 > args.Length() || !args[0]->IsString() || !args[1]->IsFunction()) {
-    NanThrowError("key/callback required");
-    NanReturnUndefined();
+    return NanThrowError("key/callback required");
   }
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());

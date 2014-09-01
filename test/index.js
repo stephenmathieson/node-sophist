@@ -20,33 +20,85 @@ describe('Sophist', function () {
     yield db.close();
   });
 
-  describe('#open(fn)', function () {
+  describe('#open([fn])', function () {
+    var db;
+    var path = TEST_DB + '_';
+
     beforeEach(function* () {
+      db = new Sophist(path);
+    });
+
+    afterEach(function* () {
       yield db.close();
+    });
+
+    afterEach(function (done) {
+      rmrf(path, done);
     });
 
     it('should be yieldable', function* () {
       yield db.open();
-      assert(exists(TEST_DB));
+      assert(exists(path));
     });
 
     it('should open create a new database', function (done) {
       db.open(function (err) {
         if (err) return done(err);
-        assert(exists(TEST_DB));
+        assert(exists(path));
         done();
+      });
+    });
+
+    describe('with createIfMissing: false', function () {
+      it('should fail to create a new db', function* () {
+        var err;
+        try {
+          yield db.open({ createIfMissing: false });
+        } catch (e) {
+          err = e;
+        }
+        assert(err);
       });
     });
   });
 
   describe('#openSync()', function () {
+    var db;
+    var path = TEST_DB + '_';
+
     beforeEach(function* () {
+      db = new Sophist(path);
+    });
+
+    afterEach(function* () {
       yield db.close();
+    });
+
+    afterEach(function (done) {
+      rmrf(path, done);
+    });
+
+    it('should be yieldable', function* () {
+      yield db.open();
+      assert(exists(path));
     });
 
     it('should open create a new database', function () {
       db.openSync();
       assert(exists(TEST_DB));
+    });
+
+    describe('with createIfMissing: false', function () {
+      it('should fail to create a new db', function () {
+        var err;
+        try {
+          db.openSync({ createIfMissing: false });
+        } catch (e) {
+          err = e;
+        }
+        assert(err);
+        console.log(err)
+      });
     });
   });
 

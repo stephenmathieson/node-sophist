@@ -11,17 +11,24 @@
 
   Create a db instance at `path`.
 
-#### db.open([fn]) / db.openSync()
+#### db.open([options], [fn]) / db.openSync([options])
 
   Open the database.
 
   Examples:
 
 ```js
-yield db.open();
+yield db.open({ createIfMissing: false });
 db.open(function (err) { /* ... */ });
 db.openSync();
 ```
+
+  Options:
+
+  * `createIfMissing`: boolean, default `true`
+  * `readOnly`: boolean, default `false`
+  * `pageSize`: number, default `2048`
+  * `mergeWatermark`: number, default `100000`
 
 #### db.close([fn]) / db.closeSync()
 
