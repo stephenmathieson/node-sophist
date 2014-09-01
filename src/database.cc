@@ -217,7 +217,7 @@ NAN_METHOD(Database::GetSync) {
   char *key = StringToCharArray(args[0]->ToString());
   char *value = self->sophia->Get(key);
 
-  delete[] key;
+  delete key;
 
   if (value) {
     NanReturnValue(NanNew<v8::String>(value));
@@ -264,7 +264,7 @@ NAN_METHOD(Database::DeleteSync) {
 
   SophiaReturnCode rc = self->sophia->Delete(key);
 
-  delete[] key;
+  delete key;
 
   if (SOPHIA_SUCCESS != rc) {
     NanThrowError(self->sophia->Error(rc));
