@@ -21,7 +21,14 @@ test: build
 	  --reporter $(REPORTER) \
 	  --require co-mocha
 
-benchmarks:
-	@$(BIN)/matcha
+valgrind: build
+	@valgrind \
+	  --leak-check=full \
+	  --trace-children=yes \
+	    node --harmony \
+	      node_modules/.bin/_mocha \
+	        --reporter spec \
+	        --require co-mocha
 
-.PHONY: test clean benchmarks
+
+.PHONY: test clean valgrind
