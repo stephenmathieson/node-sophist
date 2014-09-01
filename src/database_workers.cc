@@ -122,6 +122,4 @@ void DeleteWorker::Execute() {
   }
 }
 
-
-
 } // namespace sophist
