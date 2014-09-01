@@ -8,7 +8,7 @@ REPORTER ?= spec
 build: node_modules $(SRC)
 	@node-gyp rebuild
 
-node_modules:
+node_modules: package.json
 	@npm install
 	@touch $@
 
