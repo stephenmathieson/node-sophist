@@ -97,7 +97,6 @@ describe('Sophist', function () {
           err = e;
         }
         assert(err);
-        console.log(err)
       });
     });
   });
