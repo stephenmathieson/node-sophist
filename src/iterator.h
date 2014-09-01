@@ -10,14 +10,13 @@ class Database;
 
 class Iterator : public node::ObjectWrap {
 public:
+  Iterator(Database *database, uint32_t id);
+  ~Iterator();
   static void Init();
   static v8::Local<v8::Object> NewInstance(
       v8::Local<v8::Object> database
     , v8::Local<v8::Number> id
   );
-
-  Iterator(Database *database, uint32_t id);
-  ~Iterator();
 
   Database *database;
   sophia::Iterator *it;

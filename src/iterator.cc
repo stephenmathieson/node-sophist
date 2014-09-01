@@ -2,8 +2,6 @@
 #include "iterator.h"
 #include "iterator_workers.h"
 
-#include <stdio.h>
-
 namespace sophist {
 
 static v8::Persistent<v8::FunctionTemplate> iterator_constructor;

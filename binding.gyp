@@ -16,6 +16,10 @@
         'src/iterator.cc',
         'src/iterator_workers.h',
         'src/iterator_workers.cc',
+        'src/transaction.h',
+        'src/transaction.cc',
+        'src/transaction_workers.h',
+        'src/transaction_workers.cc',
       ],
       'dependencies': [
         'deps/sophia.cc.gyp:sophia-cc',

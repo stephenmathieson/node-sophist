@@ -7,6 +7,7 @@
 #include <nan.h>
 #include "sophia-cc.h"
 #include "iterator.h"
+#include "transaction.h"
 
 namespace sophist {
 
@@ -22,6 +23,7 @@ public:
   char *path;
   sophia::Sophia *sophia;
   std::map<uint32_t, class Iterator *> iterators;
+  class Transaction *transaction;
 
 private:
   static NAN_METHOD(New);
@@ -36,6 +38,7 @@ private:
   static NAN_METHOD(Delete);
   static NAN_METHOD(DeleteSync);
   static NAN_METHOD(Iterator);
+  static NAN_METHOD(Transaction);
 
   uint32_t currentIteratorId;
 };

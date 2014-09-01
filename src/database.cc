@@ -13,6 +13,7 @@ static v8::Persistent<v8::FunctionTemplate> database_constructor;
 
 Database::Database(char *path) : path(path) {
   currentIteratorId = 0;
+  transaction = NULL;
 }
 
 Database::~Database() {
@@ -40,6 +41,7 @@ void Database::Init(v8::Handle<v8::Object> exports) {
   NODE_SET_PROTOTYPE_METHOD(tpl, "deleteSync", Database::DeleteSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "delete", Database::Delete);
   NODE_SET_PROTOTYPE_METHOD(tpl, "iterator", Database::Iterator);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "transaction", Database::Transaction);
 
   exports->Set(NanNew("Database"), tpl->GetFunction());
 }
@@ -70,45 +72,43 @@ NAN_METHOD(Database::New) {
     NanReturnUndefined();
   }
 
-  char *path = StringToCharArray(args[0]->ToString());
+  char *path;
+  SP_V8_STRING_TO_CHAR_ARRAY(path, args[0]);
   Database *self = new Database(path);
   self->sophia = new Sophia(path);
   self->Wrap(args.This());
   NanReturnValue(args.This());
 }
 
-#define PARSE_OPEN_OPTIONS() ({                    \
-   create_if_missing = NanBooleanOptionValue(  \
-      options                                      \
-    , NanNew("createIfMissing")                    \
-    , true                                         \
-  );                                               \
-   read_only = NanBooleanOptionValue(          \
-      options                                      \
-    , NanNew("readOnly")                           \
-    , false                                        \
-  );                                               \
-   merge_watermark = NanUInt32OptionValue( \
-      options                                      \
-    , NanNew("mergeWatermark")                     \
-    , 100000                                       \
-  );                                               \
-   page_size = NanUInt32OptionValue(       \
-      options                                      \
-    , NanNew("pageSize")                           \
-    , 2048                                         \
-  );                                               \
-})
+#define SP_PARSE_OPEN_OPTIONS()                        \
+  bool create_if_missing = NanBooleanOptionValue(      \
+      options                                          \
+    , NanNew("createIfMissing")                        \
+    , true                                             \
+  );                                                   \
+  bool read_only = NanBooleanOptionValue(              \
+      options                                          \
+    , NanNew("readOnly")                               \
+    , false                                            \
+  );                                                   \
+  uint32_t merge_watermark = NanUInt32OptionValue(     \
+      options                                          \
+    , NanNew("mergeWatermark")                         \
+    , 100000                                           \
+  );                                                   \
+  uint32_t page_size = NanUInt32OptionValue(           \
+      options                                          \
+    , NanNew("pageSize")                               \
+    , 2048                                             \
+  );
 
 NAN_METHOD(Database::OpenSync) {
   NanScope();
   v8::Local<v8::Object> options;
-  bool create_if_missing, read_only;
-  uint32_t merge_watermark, page_size;
   if (args.Length() && args[0]->IsObject()) {
     options = args[0].As<v8::Object>();
   }
-  PARSE_OPEN_OPTIONS();
+  SP_PARSE_OPEN_OPTIONS()
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
   SophiaReturnCode rc = self->sophia->Open(
       create_if_missing
@@ -126,8 +126,6 @@ NAN_METHOD(Database::Open) {
   NanScope();
   v8::Local<v8::Object> options;
   v8::Local<v8::Function> callback;
-  bool create_if_missing, read_only;
-  uint32_t merge_watermark, page_size;
 
   if (0 == args.Length()) return NanThrowError("callback required");
   if (args[0]->IsFunction()) {
@@ -139,7 +137,7 @@ NAN_METHOD(Database::Open) {
     return NanThrowError("callback required");
   }
 
-  PARSE_OPEN_OPTIONS();
+  SP_PARSE_OPEN_OPTIONS()
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
   OpenWorker *worker = new OpenWorker(
       self
@@ -155,6 +153,8 @@ NAN_METHOD(Database::Open) {
   NanAsyncQueueWorker(worker);
   NanReturnUndefined();
 }
+
+#undef SP_PARSE_OPEN_OPTIONS
 
 NAN_METHOD(Database::CloseSync) {
   NanScope();
@@ -197,8 +197,9 @@ NAN_METHOD(Database::SetSync) {
     return NanThrowError("key/value required");
   }
 
-  char *key = StringToCharArray(args[0]->ToString());
-  char *value = StringToCharArray(args[1]->ToString());
+  char *key, *value;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
+  SP_V8_STRING_TO_CHAR_ARRAY(value, args[1]);
 
   SophiaReturnCode rc = self->sophia->Set(key, value);
 
@@ -222,8 +223,9 @@ NAN_METHOD(Database::Set) {
   if (!args[2]->IsFunction()) return NanThrowError("callback required");
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-  char *key = StringToCharArray(args[0]->ToString());
-  char *value = StringToCharArray(args[1]->ToString());
+  char *key, *value;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
+  SP_V8_STRING_TO_CHAR_ARRAY(value, args[1]);
   v8::Local<v8::Function> callback = args[2].As<v8::Function>();
 
   SetWorker *worker = new SetWorker(
@@ -248,10 +250,12 @@ NAN_METHOD(Database::GetSync) {
     return NanThrowError("key required");
   }
 
-  char *key = StringToCharArray(args[0]->ToString());
+  char *key;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
+
   char *value = self->sophia->Get(key);
 
-  delete key;
+  delete[] key;
 
   if (value) {
     NanReturnValue(NanNew<v8::String>(value));
@@ -268,7 +272,8 @@ NAN_METHOD(Database::Get) {
   }
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-  char *key = StringToCharArray(args[0]->ToString());
+  char *key;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
   v8::Local<v8::Function> callback = args[1].As<v8::Function>();
 
   GetWorker *worker = new GetWorker(
@@ -292,11 +297,12 @@ NAN_METHOD(Database::DeleteSync) {
     return NanThrowError("key required");
   }
 
-  char *key = StringToCharArray(args[0]->ToString());
+  char *key;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
 
   SophiaReturnCode rc = self->sophia->Delete(key);
 
-  delete key;
+  delete[] key;
 
   if (SOPHIA_SUCCESS != rc) {
     NanThrowError(self->sophia->Error(rc));
@@ -313,7 +319,8 @@ NAN_METHOD(Database::Delete) {
   }
 
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
-  char *key = StringToCharArray(args[0]->ToString());
+  char *key;
+  SP_V8_STRING_TO_CHAR_ARRAY(key, args[0]);
   v8::Local<v8::Function> callback = args[1].As<v8::Function>();
 
   DeleteWorker *worker = new DeleteWorker(
@@ -341,6 +348,23 @@ NAN_METHOD(Database::Iterator) {
   );
   self->iterators[id] = iterator;
   NanReturnValue(iteratorHandle);
+}
+
+NAN_METHOD(Database::Transaction) {
+  NanScope();
+  Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
+  if (NULL != self->transaction) {
+    return NanThrowError("another transaction is already open");
+  }
+  v8::Local<v8::Object> transactionHandle = Transaction::NewInstance(
+    args.This()
+  );
+  sophist::Transaction *transaction =
+    node::ObjectWrap::Unwrap<sophist::Transaction>(
+      transactionHandle
+    );
+  self->transaction = transaction;
+  NanReturnValue(transactionHandle);
 }
 
 }; // namespace sophist
