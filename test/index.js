@@ -292,6 +292,11 @@ describe('Sophist', function () {
             done();
           });
         });
+
+        it('should be provide null when yielded', function* () {
+          var arr = yield iterator.next();
+          assert(null == arr);
+        });
       });
     });
 
