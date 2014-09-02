@@ -77,12 +77,21 @@ NAN_METHOD(Iterator::New) {
  if (args.Length() > 1 && args[2]->IsObject()) {
     options = v8::Local<v8::Object>::Cast(args[2]);
     reverse = NanBooleanOptionValue(options, NanNew("reverse"));
-    if (options->Has(NanNew("start"))) {
-      SP_V8_STRING_TO_CHAR_ARRAY(start, options->Get(NanNew("start")));
-    }
-    if (options->Has(NanNew("end"))) {
-      SP_V8_STRING_TO_CHAR_ARRAY(end, options->Get(NanNew("end")));
-    }
+
+    #define STRING_OPTION(name)                                       \
+      v8::Local<v8::String> _ ## name = NanNew(#name);                \
+      if (options->Has(_ ## name)) {                                  \
+        if (!options->Get(_ ## name)->IsString()) {                   \
+          return NanThrowError(#name " key must be a string");        \
+        }                                                             \
+        SP_V8_STRING_TO_CHAR_ARRAY(name, options->Get(_ ## name));    \
+      }                                                               \
+
+    STRING_OPTION(start)
+    STRING_OPTION(end)
+
+    #undef STRING_OPTION
+
     gte = NanBooleanOptionValue(options, NanNew("gte"));
   }
 

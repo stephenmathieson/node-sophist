@@ -343,11 +343,20 @@ NAN_METHOD(Database::Iterator) {
   }
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
   uint32_t id = self->currentIteratorId++;
+
+  v8::TryCatch trycatch;
   v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
       args.This()
     , NanNew<v8::Number>(id)
     , options
   );
+
+  // rethrow any caught exceptions to
+  // avoid fatal errors in node::ObjectWrap
+  if (trycatch.HasCaught()) {
+    return NanThrowError(trycatch.Exception());
+  }
+
   sophist::Iterator *iterator = node::ObjectWrap::Unwrap<sophist::Iterator>(
     iteratorHandle
   );

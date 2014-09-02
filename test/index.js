@@ -327,6 +327,18 @@ describe('Sophist', function () {
           yield iterator.end();
         });
       });
+
+      describe('if <key> is not a string', function () {
+        it('should throw', function () {
+          var err;
+          try {
+            db.iterator({ start: ['a', 'b', 'c'] });
+          } catch (e) {
+            err = e;
+          }
+          assert(err && 'start key must be a string' == err.message);
+        });
+      });
     });
 
     describe('with end: <key>', function () {
@@ -338,6 +350,18 @@ describe('Sophist', function () {
         assert.equal('key1', set[0]);
         assert(null == (yield iterator.next()));
         yield iterator.end();
+      });
+
+      describe('if <key> is not a string', function () {
+        it('should throw', function () {
+          var err;
+          try {
+            db.iterator({ end: ['a', 'b', 'c'] });
+          } catch (e) {
+            err = e;
+          }
+          assert(err && 'end key must be a string' == err.message);
+        });
       });
     });
 
