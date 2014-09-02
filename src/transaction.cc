@@ -53,7 +53,7 @@ NAN_METHOD(Transaction::New) {
 
   sophia::SophiaReturnCode rc = transaction->t->Begin();
   if (sophia::SOPHIA_SUCCESS != rc) {
-    NanThrowError(database->sophia->Error(rc));
+    return NanThrowError(database->sophia->Error(rc));
   }
 
   transaction->Wrap(args.This());
@@ -73,8 +73,9 @@ NAN_METHOD(Transaction::Set) {
   Transaction *transaction = node::ObjectWrap::Unwrap<Transaction>(
     args.This()
   );
-
   sophia::SophiaReturnCode rc = transaction->t->Set(key, value);
+  delete[] key;
+  delete[] value;
   if (sophia::SOPHIA_SUCCESS != rc) {
     return NanThrowError(
       transaction->database->sophia->Error(rc)
@@ -95,8 +96,8 @@ NAN_METHOD(Transaction::Delete) {
   Transaction *transaction = node::ObjectWrap::Unwrap<Transaction>(
     args.This()
   );
-
   sophia::SophiaReturnCode rc = transaction->t->Delete(key);
+  delete[] key;
   if (sophia::SOPHIA_SUCCESS != rc) {
     return NanThrowError(
       transaction->database->sophia->Error(rc)
