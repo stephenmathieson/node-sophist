@@ -407,6 +407,23 @@ describe('Sophist', function () {
       });
     });
 
+    describe('#nextSync()', function () {
+      var iterator;
+
+      beforeEach(function () {
+        iterator = db.iterator();
+      });
+      afterEach(function (done) {
+        iterator.end(done);
+      });
+
+      it('should return [key, value]', function () {
+        var arr = iterator.nextSync();
+        assert.equal('key0', arr[0]);
+        assert.equal('value0', arr[1]);
+      });
+    });
+
     describe('#end([fn])', function () {
       it('should be yieldable', function* () {
         var iterator = db.iterator();
@@ -416,6 +433,13 @@ describe('Sophist', function () {
       it('should end the iterator', function (done) {
         var iterator = db.iterator();
         iterator.end(done);
+      });
+    });
+
+    describe('#endSync()', function () {
+      it('should end the iterator', function () {
+        var iterator = db.iterator();
+        iterator.endSync();
       });
     });
   });

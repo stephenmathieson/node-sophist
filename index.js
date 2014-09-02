@@ -75,16 +75,23 @@ function Iterator(database, options) {
 }
 
 /**
- * Proxy iterator methods through `yieldly`.
+ * Proxy synchronous methods directly, async
+ * methods through `yieldly`.
  */
 
 [
   'next',
   'end',
 ].forEach(function (method) {
+  var sync = method + 'Sync';
+
   Iterator.prototype[method] = yieldly(function (fn) {
     this.iterator[method](fn);
   });
+
+  Iterator.prototype[sync] = function () {
+    return this.iterator[sync]();
+  };
 });
 
 /**

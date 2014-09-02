@@ -31,7 +31,9 @@ void Iterator::Init() {
   tpl->SetClassName(NanNew("Iterator"));
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   NODE_SET_PROTOTYPE_METHOD(tpl, "next", Iterator::Next);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "nextSync", Iterator::NextSync);
   NODE_SET_PROTOTYPE_METHOD(tpl, "end", Iterator::End);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "endSync", Iterator::EndSync);
 }
 
 v8::Local<v8::Object> Iterator::NewInstance(
@@ -127,6 +129,19 @@ NAN_METHOD(Iterator::Next) {
   NanReturnValue(args.Holder());
 }
 
+NAN_METHOD(Iterator::NextSync) {
+  NanScope();
+  Iterator *iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
+  sophia::IteratorResult *result = iterator->it->Next();
+
+  v8::Local<v8::Array> returnArray = NanNew<v8::Array>(2);
+  v8::Local<v8::String> key = NanNew(result->key);
+  v8::Local<v8::String> value = NanNew(result->value);
+  returnArray->Set(0, key);
+  returnArray->Set(1, value);
+  NanReturnValue(returnArray);
+}
+
 NAN_METHOD(Iterator::End) {
   NanScope();
 
@@ -147,6 +162,16 @@ NAN_METHOD(Iterator::End) {
   NanAsyncQueueWorker(worker);
 
   NanReturnValue(args.Holder());
+}
+
+NAN_METHOD(Iterator::EndSync) {
+  NanScope();
+  Iterator *iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
+  sophia::SophiaReturnCode rc = iterator->it->End();
+  if (sophia::SOPHIA_SUCCESS != rc) {
+    return NanThrowError(iterator->database->sophia->Error(rc));
+  }
+  NanReturnUndefined();
 }
 
 } // namespace sophist
