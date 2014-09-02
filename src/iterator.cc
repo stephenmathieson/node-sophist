@@ -21,7 +21,10 @@ Iterator::Iterator(
   , end(end)
   , gte(gte) {}
 
-Iterator::~Iterator() {}
+Iterator::~Iterator() {
+  if (start) delete[] start;
+  if (end) delete[] end;
+}
 
 void Iterator::Init() {
   v8::Local<v8::FunctionTemplate> tpl = NanNew<v8::FunctionTemplate>(
@@ -134,12 +137,11 @@ NAN_METHOD(Iterator::NextSync) {
   Iterator *iterator = node::ObjectWrap::Unwrap<Iterator>(args.This());
   sophia::IteratorResult *result = iterator->it->Next();
 
-  v8::Local<v8::Array> returnArray = NanNew<v8::Array>(2);
-  v8::Local<v8::String> key = NanNew(result->key);
-  v8::Local<v8::String> value = NanNew(result->value);
-  returnArray->Set(0, key);
-  returnArray->Set(1, value);
-  NanReturnValue(returnArray);
+  v8::Local<v8::Array> arr = NanNew<v8::Array>(2);
+  arr->Set(0, NanNew(result->key));
+  arr->Set(1, NanNew(result->value));
+  delete result;
+  NanReturnValue(arr);
 }
 
 NAN_METHOD(Iterator::End) {
@@ -171,6 +173,7 @@ NAN_METHOD(Iterator::EndSync) {
   if (sophia::SOPHIA_SUCCESS != rc) {
     return NanThrowError(iterator->database->sophia->Error(rc));
   }
+  iterator->database->ReleaseIterator(iterator->id);
   NanReturnUndefined();
 }
 
