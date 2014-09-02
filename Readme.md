@@ -78,11 +78,18 @@ db.delete('foo', function (err) { /* ... */ });
 var value = db.deleteSync('foo');
 ```
 
-#### var iterator = db.iterator()
+#### var iterator = db.iterator([options])
 
   Create an iterator.
 
   **NOTE**: Sophia does *not* support writes while an iterator is open.
+
+  Options:
+
+  * `reverse`: boolean, default `false`
+  * `start`: string, default `null`
+  * `end`: string, default `null`
+  * `gte`: boolean, default `false`
 
 ##### iterator.next([fn])
 

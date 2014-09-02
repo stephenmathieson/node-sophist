@@ -299,6 +299,62 @@ describe('Sophist', function () {
       it.end(done);
     });
 
+    describe('with reverse: true', function () {
+      it('should iterate in reverse', function* () {
+        var iterator = db.iterator({ reverse: true });
+        var set = yield iterator.next();
+        assert.equal('key' + (COUNT - 1), set[0]);
+        assert.equal('value' + (COUNT - 1), set[1]);
+        yield iterator.end();
+      });
+    });
+
+    describe('with start: <key>', function () {
+      it('should get the key/value after <key>', function*(){
+        var iterator = db.iterator({ start: 'key2' });
+        var set = yield iterator.next();
+        assert.equal('key3', set[0]);
+        assert.equal('value3', set[1]);
+        yield iterator.end();
+      });
+
+      describe('with gte: true', function () {
+        it('should get <key>', function* () {
+          var iterator = db.iterator({ start: 'key2', gte: true });
+          var set = yield iterator.next();
+          assert.equal('key2', set[0]);
+          assert.equal('value2', set[1]);
+          yield iterator.end();
+        });
+      });
+    });
+
+    describe('with end: <key>', function () {
+      it('should stop the iterator at <key>', function* () {
+        var iterator = db.iterator({ end: 'key2' });
+        var set = yield iterator.next();
+        assert.equal('key0', set[0]);
+        set = yield iterator.next();
+        assert.equal('key1', set[0]);
+        assert(null == (yield iterator.next()));
+        yield iterator.end();
+      });
+    });
+
+    describe('with reverse, start, end, and gte', function () {
+      it('should work', function* () {
+        var iterator = db.iterator({
+          reverse: true,
+          start: 'key3',
+          end: 'key1',
+          gte: true,
+        });
+        assert.equal('key2', (yield iterator.next())[0])
+        assert.equal(null, (yield iterator.next()));
+        yield iterator.end();
+      });
+    });
+
     describe('#next([fn])', function () {
       var iterator;
 
