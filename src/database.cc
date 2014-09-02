@@ -337,11 +337,16 @@ NAN_METHOD(Database::Delete) {
 
 NAN_METHOD(Database::Iterator) {
   NanScope();
+  v8::Local<v8::Object> options;
+  if (args.Length() && args[0]->IsObject()) {
+    options = args[0].As<v8::Object>();
+  }
   Database *self = node::ObjectWrap::Unwrap<Database>(args.This());
   uint32_t id = self->currentIteratorId++;
   v8::Local<v8::Object> iteratorHandle = Iterator::NewInstance(
       args.This()
     , NanNew<v8::Number>(id)
+    , options
   );
   sophist::Iterator *iterator = node::ObjectWrap::Unwrap<sophist::Iterator>(
     iteratorHandle

@@ -1,4 +1,5 @@
 
+#include "sophist.h"
 #include "iterator.h"
 #include "iterator_workers.h"
 
@@ -9,7 +10,16 @@ static v8::Persistent<v8::FunctionTemplate> iterator_constructor;
 Iterator::Iterator(
     Database *database
   , uint32_t id
-) : database(database), id(id) {}
+  , bool reverse
+  , char *start
+  , char *end
+  , bool gte
+) : database(database)
+  , id(id)
+  , reverse(reverse)
+  , start(start)
+  , end(end)
+  , gte(gte) {}
 
 Iterator::~Iterator() {}
 
@@ -27,17 +37,22 @@ void Iterator::Init() {
 v8::Local<v8::Object> Iterator::NewInstance(
     v8::Local<v8::Object> database
   , v8::Local<v8::Number> id
+  , v8::Local<v8::Object> options
 ) {
   NanEscapableScope();
 
   v8::Local<v8::Object> instance;
-  v8::Local<v8::FunctionTemplate> c = NanNew<v8::FunctionTemplate>(
+  v8::Local<v8::FunctionTemplate> constructor = NanNew<v8::FunctionTemplate>(
     iterator_constructor
   );
 
-  // TODO: options, etc
-  v8::Handle<v8::Value> argv[2] = { database, id };
-  instance = c->GetFunction()->NewInstance(2, argv);
+  if (options.IsEmpty()) {
+    v8::Handle<v8::Value> argv[2] = { database, id };
+    instance = constructor->GetFunction()->NewInstance(2, argv);
+  } else {
+    v8::Handle<v8::Value> argv[3] = { database, id, options };
+    instance = constructor->GetFunction()->NewInstance(3, argv);
+  }
 
   return NanEscapeScope(instance);
 }
@@ -48,11 +63,38 @@ NAN_METHOD(Iterator::New) {
     args[0]->ToObject()
   );
   v8::Local<v8::Value> id = args[1];
+  v8::Local<v8::Object> options;
+  bool reverse = false;
+  char *start = NULL;
+  char *end = NULL;
+  bool gte = false;
+
+ if (args.Length() > 1 && args[2]->IsObject()) {
+    options = v8::Local<v8::Object>::Cast(args[2]);
+    reverse = NanBooleanOptionValue(options, NanNew("reverse"));
+    if (options->Has(NanNew("start"))) {
+      SP_V8_STRING_TO_CHAR_ARRAY(start, options->Get(NanNew("start")));
+    }
+    if (options->Has(NanNew("end"))) {
+      SP_V8_STRING_TO_CHAR_ARRAY(end, options->Get(NanNew("end")));
+    }
+    gte = NanBooleanOptionValue(options, NanNew("gte"));
+  }
+
   Iterator *iterator = new Iterator(
       database
     , (uint32_t) id->Int32Value()
+    , reverse
+    , start
+    , end
+    , gte
   );
-  iterator->it = new sophia::Iterator(database->sophia);
+  iterator->it = new sophia::Iterator(
+      database->sophia
+    , reverse ? SPLT : gte ? SPGTE : SPGT
+    , start
+    , end
+  );
 
   sophia::SophiaReturnCode rc = iterator->it->Begin();
   if (sophia::SOPHIA_SUCCESS != rc) {
