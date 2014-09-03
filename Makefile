@@ -19,7 +19,8 @@ clean:
 test: build
 	$(BIN)/gnode $(BIN)/_mocha \
 	  --reporter $(REPORTER) \
-	  --require co-mocha
+	  --require co-mocha \
+	  --slow 5ms
 
 valgrind: build
 	@valgrind \
