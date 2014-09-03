@@ -210,6 +210,18 @@ describe('Sophist', function () {
         });
       });
 
+      it('should handle concurrent access', function (done) {
+        var times = 1000;
+        for (var i = 0; i < times; i++)
+          db.get('key1', then);
+
+        function then(err, value) {
+          if (err) return done(err);
+          assert('value1' == value);
+          if (!--times) done();
+        }
+      });
+
       describe('if key is missing', function () {
         it('should still work', function (done) {
           db.get('key3', function (err, value) {
@@ -297,6 +309,25 @@ describe('Sophist', function () {
       var it = db.iterator();
       assert(it);
       it.end(done);
+    });
+
+    it('should handle multiple iterators', function (done) {
+      var n = 1000;
+      for (var i = 0; i < n; i++) {
+        var iterator = db.iterator();
+        iterator.next(factory(iterator));
+      }
+
+      function factory(iterator) {
+        return function next(err, key) {
+          if (err) return done(err);
+          assert('key0' == key);
+          iterator.end(function (err) {
+            if (err) return done(err);
+            if (!--n) done();
+          });
+        };
+      }
     });
 
     describe('with reverse: true', function () {
