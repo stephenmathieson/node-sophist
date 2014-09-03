@@ -89,8 +89,8 @@ GetWorker::GetWorker(
 ) : DatabaseWorker(database, callback), key(key) {}
 
 GetWorker::~GetWorker() {
-  delete key;
-  if (value) delete[] value;
+  delete[] key;
+  if (value) free(value);
 }
 
 void GetWorker::Execute() {

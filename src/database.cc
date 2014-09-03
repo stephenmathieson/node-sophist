@@ -17,8 +17,8 @@ Database::Database(char *path) : path(path) {
 }
 
 Database::~Database() {
-  delete sophia;
   delete[] path;
+  delete sophia;
 }
 
 void Database::Init(v8::Handle<v8::Object> exports) {
