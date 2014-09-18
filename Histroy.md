@@ -1,6 +1,27 @@
 
 # Release History
 
+## 1.0.0 (September 18th, 2014)
+
+  * **breaking change:** Removed `levelup` support entirely
+  * **breaking change:** Removed `db.purge()` and `db.clear()`
+  * **breaking change:** Upgraded Sophia to [5a88904](https://github.com/pmwkaa/sophia/commit/5a88904e282d7f89422a005204ea7cc5f1785486) ([#4](https://github.com/stephenmathieson/node-sophist/issues/4))
+  * Add node 0.10.* and 0.11 support ([#5](https://github.com/stephenmathieson/node-sophist/issues/5) and [#11](https://github.com/stephenmathieson/node-sophist/issues/11))
+  * Add more synchronous methods ([#12](https://github.com/stephenmathieson/node-sophist/issues/12)):
+    - `db.openSync()`
+    - `db.closeSync()`
+    - `iterator.nextSync()`
+    - `iterator.endSync()`
+  * Add `yield` support to asynchronous methods:
+    - `yield db.open()`
+    - `yield db.close()`
+    - `yield db.get(key)`
+    - `yield db.set(key, value)`
+    - `yield iterator.next()`
+    - `yield transaction.commit()`
+    - `yield transaction.rollback()`
+  * `db.close()` and `db.closeSync()` will now cleanup any iterators left open
+
 ## 0.2.2 (April 20th, 2014)
 
  * Prevent segfaults when attempting to read/write an unopened db
