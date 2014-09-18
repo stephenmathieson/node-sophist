@@ -24,7 +24,7 @@ describe('Sophist', function () {
     var db;
     var path = TEST_DB + '_';
 
-    beforeEach(function* () {
+    beforeEach(function () {
       db = new Sophist(path);
     });
 
@@ -66,7 +66,7 @@ describe('Sophist', function () {
     var db;
     var path = TEST_DB + '_';
 
-    beforeEach(function* () {
+    beforeEach(function () {
       db = new Sophist(path);
     });
 
@@ -138,6 +138,7 @@ describe('Sophist', function () {
     });
 
     it('should close an opened database', function () {
+      var err;
       db.openSync();
       db.closeSync();
       try {
@@ -341,7 +342,7 @@ describe('Sophist', function () {
     });
 
     describe('with start: <key>', function () {
-      it('should get the key/value after <key>', function*(){
+      it('should get the key/value after <key>', function* () {
         var iterator = db.iterator({ start: 'key2' });
         var set = yield iterator.next();
         assert.equal('key3', set[0]);
@@ -441,6 +442,7 @@ describe('Sophist', function () {
           var pending = COUNT;
           iterator.next(next);
           function next(err) {
+            if (err) return done(err);
             if (!--pending) return done();
             iterator.next(next);
           }
@@ -506,15 +508,16 @@ describe('Sophist', function () {
     });
 
     describe('with another transaction open', function () {
-      it('should throw', function () {
+      it('should throw', function* () {
         var err;
         var t1 = db.transaction();
         try {
-          var t2 = db.transaction();
-        } catch(e) {
+          db.transaction();
+        } catch (e) {
           err = e;
         }
         assert(err && ~err.message.indexOf('transaction is already open'));
+        yield t1.rollback();
       });
     });
 
