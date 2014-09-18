@@ -517,62 +517,62 @@ describe('Sophist', function () {
         assert(err && ~err.message.indexOf('transaction is already open'));
       });
     });
-  });
 
-  describe('#set(key, value)', function () {
-    it('should add a pending set', function* () {
-      var transaction = db.transaction();
-      transaction.set('foo', 'bar');
-      assert(null == (yield db.get('foo')));
-      yield transaction.commit();
-      assert('bar' == (yield db.get('foo')));
-    });
-  });
-
-  describe('#delete(key)', function () {
-    it('should add a pending delete', function* () {
-      yield db.set('foo', 'bar');
-      var transaction = db.transaction();
-      transaction.delete('foo');
-      assert('bar' == (yield db.get('foo')));
-      yield transaction.commit();
-      assert(null == (yield db.get('foo')));
-    });
-  });
-
-  describe('#commit([fn])', function () {
-    var transaction;
-
-    beforeEach(function () {
-      transaction = db.transaction();
-      for (var i = 0; i < 100; i++) transaction.set(String(i), String(i));
+    describe('#set(key, value)', function () {
+      it('should add a pending set', function* () {
+        var transaction = db.transaction();
+        transaction.set('foo', 'bar');
+        assert(null == (yield db.get('foo')));
+        yield transaction.commit();
+        assert('bar' == (yield db.get('foo')));
+      });
     });
 
-    it('should commit the pending writes', function (done) {
-      transaction.commit(done);
+    describe('#delete(key)', function () {
+      it('should add a pending delete', function* () {
+        yield db.set('foo', 'bar');
+        var transaction = db.transaction();
+        transaction.delete('foo');
+        assert('bar' == (yield db.get('foo')));
+        yield transaction.commit();
+        assert(null == (yield db.get('foo')));
+      });
     });
 
-    it('should be yieldable', function* () {
-      yield transaction.commit();
-      assert('40' == (yield db.get('40')));
+    describe('#commit([fn])', function () {
+      var transaction;
+
+      beforeEach(function () {
+        transaction = db.transaction();
+        for (var i = 0; i < 100; i++) transaction.set(String(i), String(i));
+      });
+
+      it('should commit the pending writes', function (done) {
+        transaction.commit(done);
+      });
+
+      it('should be yieldable', function* () {
+        yield transaction.commit();
+        assert('40' == (yield db.get('40')));
+      });
     });
-  });
 
-  describe('#rollback([fn])', function () {
-    var transaction;
+    describe('#rollback([fn])', function () {
+      var transaction;
 
-    beforeEach(function () {
-      transaction = db.transaction();
-      for (var i = 0; i < 100; i++) transaction.set(String(i), String(i));
-    });
+      beforeEach(function () {
+        transaction = db.transaction();
+        for (var i = 0; i < 100; i++) transaction.set(String(i), String(i));
+      });
 
-    it('should rollback the pending writes', function (done) {
-      transaction.rollback(done);
-    });
+      it('should rollback the pending writes', function (done) {
+        transaction.rollback(done);
+      });
 
-    it('should be yieldable', function* () {
-      yield transaction.rollback();
-      assert(null == (yield db.get('40')));
+      it('should be yieldable', function* () {
+        yield transaction.rollback();
+        assert(null == (yield db.get('40')));
+      });
     });
   });
 });
