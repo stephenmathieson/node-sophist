@@ -22,7 +22,6 @@
   * `pageSize`: number, default `2048`
   * `mergeWatermark`: number, default `100000`
 
-
 ```js
 yield db.open({ createIfMissing: false });
 db.open(function (err) { /* ... */ });
