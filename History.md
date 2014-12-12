@@ -1,4 +1,14 @@
 
+1.1.0 / 2014-12-12
+==================
+
+  * package: Update `mocha` to 2.0.1
+  * History: Regenerate with `git changelog`
+  * Readme: Fix whitespace
+  * package: Update `nan` to 1.4.1
+  * iterator: Add `lte` option support
+  * package: Update `gnode` to 0.1.0
+
 1.0.0 / 2014-09-18
 ==================
 

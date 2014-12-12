@@ -1,6 +1,6 @@
 {
   "name": "sophist",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A (maintained) Sophia binding.",
   "author": "Stephen Mathieson <me@stephenmathieson.com>",
   "keywords": [
