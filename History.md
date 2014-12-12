@@ -1,7 +1,6 @@
 
-# Release History
-
-## 1.0.0 (September 18th, 2014)
+1.0.0 / 2014-09-18
+==================
 
   * **breaking change:** Removed `levelup` support entirely
   * **breaking change:** Removed `db.purge()` and `db.clear()`
@@ -22,23 +21,27 @@
     - `yield transaction.rollback()`
   * `db.close()` and `db.closeSync()` will now cleanup any iterators left open
 
-## 0.2.2 (April 20th, 2014)
+0.2.2 / 2014-04-20
+==================
 
- * Prevent segfaults when attempting to read/write an unopened db
- * Refactor to use [sophia.cc](https://github.com/stephenmathieson/sophia.cc)
+  * Prevent segfaults when attempting to read/write an unopened db
+  * Refactor to use [sophia.cc](https://github.com/stephenmathieson/sophia.cc)
 
-## 0.2.1 (Feb 8th, 2014)
+0.2.1 / 2014-02-08
+==================
 
   * Remove `package.json` from deps/list to work around [npm#4630](https://github.com/npm/npm/issues/4630).
 
-## 0.2.0 (Feb 8th, 2014)
+0.2.0 / 2014-02-08
+==================
 
   * Refactor transactions for nearly a 90% performance boost
   * Add `#deleteSync`
   * Change iteration end `null` -> `undefined`
   * Add primitive [LevelUP](https://github.com/rvagg/node-levelup) compatibility
 
-## 0.1.0 (Jan 27th, 2014)
+0.1.0 / 2014-01-27
+==================
 
   * Fix error handling (NAN expects weird stuff with `errmsg`)
   * Add options to `#open`
@@ -55,6 +58,7 @@
       - `transation#set`
       - `transation#delete`
 
-## 0.0.0 (Jan 23rd, 2014)
+0.0.0 / 2014-01-23
+==================
 
   * Initial release, supporting very basic (and buggy) operations
