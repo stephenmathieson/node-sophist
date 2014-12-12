@@ -14,12 +14,14 @@ Iterator::Iterator(
   , char *start
   , char *end
   , bool gte
+  , bool lte
 ) : database(database)
   , id(id)
   , reverse(reverse)
   , start(start)
   , end(end)
-  , gte(gte) {}
+  , gte(gte)
+  , lte(lte) {}
 
 Iterator::~Iterator() {
   if (start) delete[] start;
@@ -73,6 +75,7 @@ NAN_METHOD(Iterator::New) {
   char *start = NULL;
   char *end = NULL;
   bool gte = false;
+  bool lte = false;
 
  if (args.Length() > 1 && args[2]->IsObject()) {
     options = v8::Local<v8::Object>::Cast(args[2]);
@@ -93,6 +96,7 @@ NAN_METHOD(Iterator::New) {
     #undef STRING_OPTION
 
     gte = NanBooleanOptionValue(options, NanNew("gte"));
+    lte = NanBooleanOptionValue(options, NanNew("lte"));
   }
 
   Iterator *iterator = new Iterator(
@@ -102,10 +106,16 @@ NAN_METHOD(Iterator::New) {
     , start
     , end
     , gte
+    , lte
   );
+
+  sporder order = reverse
+    ? lte ? SPLTE : SPLT
+    : gte ? SPGTE : SPGT;
+
   iterator->it = new sophia::Iterator(
       database->sophia
-    , reverse ? SPLT : gte ? SPGTE : SPGT
+    , order
     , start
     , end
   );

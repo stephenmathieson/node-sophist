@@ -81,6 +81,7 @@ var value = db.deleteSync('foo');
   * `start`: string, default `null`
   * `end`: string, default `null`
   * `gte`: boolean, default `false`
+  * `lte`: boolean, default `false`
 
 ##### iterator.next([fn])
 

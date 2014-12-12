@@ -17,6 +17,7 @@ public:
     , char *start
     , char *end
     , bool gte
+    , bool lte
   );
   ~Iterator();
   static void Init();
@@ -42,6 +43,7 @@ protected:
   char *start;
   char *end;
   bool gte;
+  bool lte;
 };
 
 } // namespace sophist

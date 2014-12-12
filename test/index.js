@@ -339,6 +339,33 @@ describe('Sophist', function () {
         assert.equal('value' + (COUNT - 1), set[1]);
         yield iterator.end();
       });
+
+      describe('with start: <key>', function() {
+        it('should start at the prior key', function*(){
+          var iterator = db.iterator({
+            reverse: true,
+            start: 'key3',
+          });
+          var set = yield iterator.next();
+          assert.equal('key2', set[0]);
+          assert.equal('value2', set[1]);
+          yield iterator.end();
+        });
+
+        describe('with lte: true', function() {
+          it('should start at the key', function*(){
+            var iterator = db.iterator({
+              reverse: true,
+              lte: true,
+              start: 'key3',
+            });
+            var set = yield iterator.next();
+            assert.equal('key3', set[0]);
+            assert.equal('value3', set[1]);
+            yield iterator.end();
+          });
+        });
+      });
     });
 
     describe('with start: <key>', function () {
