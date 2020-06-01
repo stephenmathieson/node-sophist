@@ -1,7 +1,7 @@
 
 # sophist
 
-  A (maintained) Sophia binding.
+  An (unmaintained) Sophia binding.
 
 [![Build Status](https://travis-ci.org/stephenmathieson/node-sophist.png?branch=master)](https://travis-ci.org/stephenmathieson/node-sophist)
 
